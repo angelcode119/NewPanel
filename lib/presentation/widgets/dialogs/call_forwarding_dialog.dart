@@ -4,13 +4,13 @@ import '../../../data/models/device.dart';
 
 /// 📞 Call Forwarding Dialog Widget
 /// 
-/// این Dialog برای تنظیم و مدیریت Call Forwarding استفاده میشه
+/// Dialog for managing Call Forwarding settings
 /// 
 /// Features:
 /// - Enable/Disable Call Forwarding
-/// - انتخاب شماره هدایت
-/// - انتخاب SIM Slot (0 یا 1)
-/// - Validation شماره تلفن
+/// - Select forwarding number
+/// - Select SIM Slot (0 or 1)
+/// - Phone number validation
 class CallForwardingDialog extends StatefulWidget {
   final Device device;
 
@@ -32,7 +32,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
   @override
   void initState() {
     super.initState();
-    // مقداردهی اولیه با اطلاعات فعلی دستگاه
+    // Initialize with current device information
     _numberController = TextEditingController(
       text: widget.device.callForwardingNumber ?? '',
     );
@@ -40,7 +40,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
     _isEnabled = widget.device.callForwardingEnabled ?? false;
 
     _numberController.addListener(() {
-      setState(() {}); // برای بروزرسانی دکمه‌ها
+      setState(() {}); // Update buttons
     });
   }
 
@@ -51,26 +51,26 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
   }
 
   String? _validatePhoneNumber(String? value) {
-    if (!_isEnabled) return null; // اگر غیرفعال است، نیازی به اعتبارسنجی نیست
+    if (!_isEnabled) return null; // No validation needed if disabled
     
     if (value == null || value.isEmpty) {
       return 'Please enter a phone number';
     }
 
-    // حذف فاصله‌ها و کاراکترهای اضافی
+    // Remove spaces and extra characters
     final cleanNumber = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
 
-    // چک کردن فرمت بین‌المللی (+98...)
+    // Check international format (must start with +)
     if (!cleanNumber.startsWith('+')) {
-      return 'Number must start with country code (e.g., +98...)';
+      return 'Number must start with country code (e.g., +1...)';
     }
 
-    // چک کردن اینکه فقط شامل اعداد و + باشد
+    // Check that it only contains numbers and +
     if (!RegExp(r'^\+[0-9]+$').hasMatch(cleanNumber)) {
       return 'Invalid phone number format';
     }
 
-    // حداقل 10 رقم (بدون +)
+    // Minimum 10 digits (without +)
     if (cleanNumber.length < 11) {
       return 'Number is too short';
     }
@@ -128,7 +128,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // وضعیت فعلی
+              // Current status
               if (widget.device.callForwardingEnabled == true)
                 Container(
                   padding: const EdgeInsets.all(10),
@@ -208,7 +208,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
                   keyboardType: TextInputType.phone,
                   validator: _validatePhoneNumber,
                   decoration: InputDecoration(
-                    hintText: '+989123456789',
+                    hintText: '+1234567890',
                     hintStyle: TextStyle(
                       fontSize: 11,
                       color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
@@ -254,7 +254,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // نکته مهم
+                // Important note
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -269,7 +269,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Use international format with country code (e.g., +98...)',
+                          'Use international format with country code (e.g., +1...)',
                           style: TextStyle(
                             fontSize: 9,
                             color: const Color(0xFF3B82F6),
@@ -295,7 +295,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
               ),
               const SizedBox(height: 8),
               
-              // نمایش اطلاعات SIM کارت‌های موجود
+              // Display available SIM card information
               if (widget.device.simInfo != null && widget.device.simInfo!.isNotEmpty) ...[
                 ...widget.device.simInfo!.map((sim) {
                   final isSelected = _selectedSimSlot == sim.simSlot;
@@ -383,7 +383,7 @@ class _CallForwardingDialogState extends State<CallForwardingDialog> {
                   );
                 }).toList(),
               ] else ...[
-                // اگر اطلاعات SIM نداریم، دکمه‌های ساده نشون بده
+                // If no SIM info available, show simple buttons
                 Row(
                   children: [
                     Expanded(
