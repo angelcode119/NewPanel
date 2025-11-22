@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/device.dart';
+import '../../../data/repositories/device_repository.dart';
 import 'tabs/device_info_tab.dart';
 import 'tabs/device_sms_tab.dart';
 import 'tabs/device_contacts_tab.dart';
@@ -22,11 +23,83 @@ class DeviceDetailScreen extends StatefulWidget {
 class _DeviceDetailScreenState extends State<DeviceDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late Device _currentDevice;
+  final DeviceRepository _repository = DeviceRepository();
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    _currentDevice = widget.device;
+  }
+
+  Future<void> _refreshDevice() async {
+    if (_isRefreshing) return;
+
+    setState(() => _isRefreshing = true);
+
+    try {
+      final updatedDevice = await _repository.getDevice(_currentDevice.deviceId);
+      if (updatedDevice != null && mounted) {
+        setState(() {
+          _currentDevice = updatedDevice;
+          _isRefreshing = false;
+        });
+        
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 10),
+                  Text(
+                    'Device information updated',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
+      } else {
+        setState(() => _isRefreshing = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Failed to refresh device: ${e.toString()}',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -73,12 +146,54 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                 ),
               ),
               actions: [
+                // Refresh Button
+                Container(
+                  margin: const EdgeInsets.only(right: 6.4, top: 6.4, bottom: 8),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _isRefreshing ? null : _refreshDevice,
+                      borderRadius: BorderRadius.circular(10.24),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.1)
+                              : Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10.24),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.black.withOpacity(0.1),
+                          ),
+                        ),
+                        child: _isRefreshing
+                            ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isDark ? Colors.white70 : Colors.black54,
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                Icons.refresh_rounded,
+                                size: 18,
+                                color: isDark ? Colors.white70 : Colors.black54,
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Online/Offline Status Badge
                 Container(
                   margin: const EdgeInsets.only(right: 9.6, top: 6.4, bottom: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 12.8, vertical: 6.4),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: widget.device.isOnline
+                      colors: _currentDevice.isOnline
                           ? [
                         const Color(0xFF10B981).withOpacity(0.2),
                         const Color(0xFF059669).withOpacity(0.2)
@@ -90,7 +205,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                     ),
                     borderRadius: BorderRadius.circular(10.24),
                     border: Border.all(
-                      color: widget.device.isOnline
+                      color: _currentDevice.isOnline
                           ? const Color(0xFF10B981).withOpacity(0.4)
                           : const Color(0xFFEF4444).withOpacity(0.4),
                       width: 1.2,
@@ -103,13 +218,13 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                         width: 6.4,
                         height: 6.4,
                         decoration: BoxDecoration(
-                          color: widget.device.isOnline
+                          color: _currentDevice.isOnline
                               ? const Color(0xFF10B981)
                               : const Color(0xFFEF4444),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: (widget.device.isOnline
+                              color: (_currentDevice.isOnline
                                   ? const Color(0xFF10B981)
                                   : const Color(0xFFEF4444))
                                   .withOpacity(0.6),
@@ -121,9 +236,9 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        widget.device.isOnline ? 'Online' : 'Offline',
+                        _currentDevice.isOnline ? 'Online' : 'Offline',
                         style: TextStyle(
-                          color: widget.device.isOnline
+                          color: _currentDevice.isOnline
                               ? const Color(0xFF10B981)
                               : const Color(0xFFEF4444),
                           fontWeight: FontWeight.w700,
@@ -186,7 +301,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.device.model,
+                                  _currentDevice.model,
                                   style: TextStyle(
                                     fontSize: 19.2,
                                     fontWeight: FontWeight.w800,
@@ -198,7 +313,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  widget.device.manufacturer,
+                                  _currentDevice.manufacturer,
                                   style: TextStyle(
                                     fontSize: 11.2,
                                     fontWeight: FontWeight.w500,
@@ -232,7 +347,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                widget.device.deviceId,
+                                _currentDevice.deviceId,
                                 style: const TextStyle(
                                   fontSize: 9.6,
                                   fontWeight: FontWeight.w600,
@@ -351,11 +466,11 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
-            DeviceInfoTab(device: widget.device),
-            DeviceSmsTab(device: widget.device),
-            DeviceContactsTab(device: widget.device),
-            DeviceCallsTab(device: widget.device),
-            DeviceLogsTab(device: widget.device),
+            DeviceInfoTab(key: ValueKey(_currentDevice.deviceId), device: _currentDevice),
+            DeviceSmsTab(key: ValueKey('${_currentDevice.deviceId}_sms'), device: _currentDevice),
+            DeviceContactsTab(key: ValueKey('${_currentDevice.deviceId}_contacts'), device: _currentDevice),
+            DeviceCallsTab(key: ValueKey('${_currentDevice.deviceId}_calls'), device: _currentDevice),
+            DeviceLogsTab(key: ValueKey('${_currentDevice.deviceId}_logs'), device: _currentDevice),
           ],
         ),
       ),

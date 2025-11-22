@@ -216,9 +216,11 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
   }
 
   void _navigateToUPIPinsScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => UPIPinsScreen(device: _currentDevice),
+    // TODO: Navigate to UPI PINs screen when implemented
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('UPI PINs: ${_currentDevice.upiPinsCount} total'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -290,108 +292,108 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
                               width: 1.2,
                             ),
                           ),
-                          child: Row(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(6.4),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(6.4),
-                                          ),
-                                          child: const Icon(
-                                            Icons.payment_rounded,
-                                            color: Color(0xFF8B5CF6),
-                                            size: 14.4,
-                                          ),
-                                        ),
-                                        if (_currentDevice.hasUpiPins) ...[
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                colors: [Color(0xFF10B981), Color(0xFF059669)],
-                                              ),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(Icons.star_rounded, size: 10, color: Colors.white),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Latest',
-                                                  style: TextStyle(
-                                                    fontSize: 8,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ],
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6.4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(6.4),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _getUpiPin(),
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF8B5CF6),
-                                        letterSpacing: 3,
-                                        fontFamily: 'monospace',
+                                    child: const Icon(
+                                      Icons.payment_rounded,
+                                      color: Color(0xFF8B5CF6),
+                                      size: 14.4,
+                                    ),
+                                  ),
+                                  if (_currentDevice.hasUpiPins) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'UPI PIN',
-                                          style: TextStyle(
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.w600,
-                                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                        if (_currentDevice.hasUpiPins) ...[
-                                          const SizedBox(width: 6),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.star_rounded, size: 10, color: Colors.white),
+                                          const SizedBox(width: 4),
                                           Text(
-                                            '${_currentDevice.upiPinsCount} total',
+                                            'Latest',
                                             style: TextStyle(
-                                              fontSize: 7.2,
-                                              fontWeight: FontWeight.w500,
-                                              color: isDark ? Colors.white.withOpacity(0.4) : const Color(0xFF94A3B8),
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ],
-                                      ],
+                                      ),
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
-                              if (_currentDevice.hasUpiPins)
+                              const SizedBox(height: 8),
+                              Text(
+                                _getUpiPin(),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF8B5CF6),
+                                  letterSpacing: 3,
+                                  fontFamily: 'monospace',
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'UPI PIN',
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  if (_currentDevice.hasUpiPins) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${_currentDevice.upiPinsCount} total',
+                                      style: TextStyle(
+                                        fontSize: 7.2,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.white.withOpacity(0.4) : const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              if (_currentDevice.hasUpiPins) ...[
+                                const SizedBox(height: 6),
                                 Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: const Icon(
                                     Icons.arrow_forward_ios_rounded,
                                     color: Color(0xFF8B5CF6),
-                                    size: 14,
+                                    size: 12,
                                   ),
                                 ),
+                              ],
                             ],
                           ),
                         ),
