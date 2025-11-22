@@ -42,6 +42,17 @@ class _DeviceCallsTabState extends State<DeviceCallsTab>
   }
 
   @override
+  void didUpdateWidget(DeviceCallsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh calls when device changes
+    if (oldWidget.device.deviceId != widget.device.deviceId || 
+        oldWidget.key != widget.key) {
+      _currentPage = 1;
+      _fetchCalls();
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();

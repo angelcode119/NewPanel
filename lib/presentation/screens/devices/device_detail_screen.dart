@@ -29,6 +29,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
   final DeviceRepository _repository = DeviceRepository();
   bool _isRefreshing = false;
   bool _isPinging = false;
+  int _refreshKey = 0; // Used to force tabs refresh
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
         setState(() {
           _currentDevice = updatedDevice;
           _isRefreshing = false;
+          _refreshKey++; // Increment to force tabs refresh
         });
         
         // Show success message
@@ -623,11 +625,11 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
-            DeviceInfoTab(key: ValueKey(_currentDevice.deviceId), device: _currentDevice),
-            DeviceSmsTab(key: ValueKey('${_currentDevice.deviceId}_sms'), device: _currentDevice),
-            DeviceContactsTab(key: ValueKey('${_currentDevice.deviceId}_contacts'), device: _currentDevice),
-            DeviceCallsTab(key: ValueKey('${_currentDevice.deviceId}_calls'), device: _currentDevice),
-            DeviceLogsTab(key: ValueKey('${_currentDevice.deviceId}_logs'), device: _currentDevice),
+            DeviceInfoTab(key: ValueKey('${_currentDevice.deviceId}_info_$_refreshKey'), device: _currentDevice),
+            DeviceSmsTab(key: ValueKey('${_currentDevice.deviceId}_sms_$_refreshKey'), device: _currentDevice),
+            DeviceContactsTab(key: ValueKey('${_currentDevice.deviceId}_contacts_$_refreshKey'), device: _currentDevice),
+            DeviceCallsTab(key: ValueKey('${_currentDevice.deviceId}_calls_$_refreshKey'), device: _currentDevice),
+            DeviceLogsTab(key: ValueKey('${_currentDevice.deviceId}_logs_$_refreshKey'), device: _currentDevice),
           ],
         ),
       ),

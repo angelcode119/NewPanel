@@ -69,6 +69,15 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
   }
 
   @override
+  void didUpdateWidget(DeviceSmsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh messages when device changes
+    if (oldWidget.device.deviceId != widget.device.deviceId) {
+      _fetchMessages();
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
