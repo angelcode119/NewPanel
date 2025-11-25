@@ -82,7 +82,7 @@ class _DeviceCallsTabState extends State<DeviceCallsTab>
               try {
                 parsedCalls.add(CallLog.fromJson(item as Map<String, dynamic>));
               } catch (e) {
-                debugPrint(''Error parsing call: $e');
+                debugPrint('Error parsing call: $e');
               }
             }
           }

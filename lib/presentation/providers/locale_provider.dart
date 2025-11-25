@@ -50,7 +50,7 @@ class LocaleProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('language_code', locale.languageCode);
     } catch (e) {
-      debugPrint(''Error setting locale: $e');
+      debugPrint('Error setting locale: $e');
     }
 
     _isLoading = false;

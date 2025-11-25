@@ -590,7 +590,6 @@ class Device {
   }
 
   String get fullDeviceName {
-  String get fullDeviceName {
     if (brand != null && model != null) {
       return '$brand $model';
     }

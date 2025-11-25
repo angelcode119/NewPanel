@@ -57,10 +57,10 @@ void main() async {
       messaging_import.FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
       await fcm_import.FCMService().initialize();
     } catch (e) {
-      debugPrint(''Firebase initialization failed: $e');
+      debugPrint('Firebase initialization failed: $e');
     }
   } else {
-    debugPrint(''Firebase skipped for platform: $defaultTargetPlatform');
+    debugPrint('Firebase skipped for platform: $defaultTargetPlatform');
   }
 
   runApp(const MyApp());

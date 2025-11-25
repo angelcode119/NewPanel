@@ -103,7 +103,7 @@ class _FCMTestScreenState extends State<FCMTestScreen> {
       
       _showSuccess('UPI notification sent!');
     } catch (e) {
-      debugPrint(''? Error: $e');
+      debugPrint('⚠️ Error: $e');
       _showError('Error: $e');
     }
   }

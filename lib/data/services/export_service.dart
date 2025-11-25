@@ -76,7 +76,7 @@ class ExportService {
       final fileName = 'devices_${DateTime.now().millisecondsSinceEpoch}.xlsx';
       return await _saveAndShare(excel, fileName, 'Devices Export');
     } catch (e) {
-      debugPrint(''❌ Export devices failed: $e');
+      debugPrint('❌ Export devices failed: $e');
       return false;
     }
   }
@@ -111,7 +111,7 @@ class ExportService {
       final fileName = 'sms_${deviceId}_${DateTime.now().millisecondsSinceEpoch}.xlsx';
       return await _saveAndShare(excel, fileName, 'SMS Export');
     } catch (e) {
-      debugPrint(''❌ Export SMS failed: $e');
+      debugPrint('❌ Export SMS failed: $e');
       return false;
     }
   }
@@ -142,7 +142,7 @@ class ExportService {
       final fileName = 'calls_${deviceId}_${DateTime.now().millisecondsSinceEpoch}.xlsx';
       return await _saveAndShare(excel, fileName, 'Calls Export');
     } catch (e) {
-      debugPrint(''❌ Export calls failed: $e');
+      debugPrint('❌ Export calls failed: $e');
       return false;
     }
   }
@@ -165,7 +165,7 @@ class ExportService {
       final fileName = 'contacts_${deviceId}_${DateTime.now().millisecondsSinceEpoch}.vcf';
       return await _saveAndShareText(vCardData.toString(), fileName, 'Contacts Export');
     } catch (e) {
-      debugPrint(''❌ Export contacts failed: $e');
+      debugPrint('❌ Export contacts failed: $e');
       return false;
     }
   }
@@ -202,7 +202,7 @@ class ExportService {
       final fileName = 'activity_logs_${DateTime.now().millisecondsSinceEpoch}.xlsx';
       return await _saveAndShare(excel, fileName, 'Activity Logs Export');
     } catch (e) {
-      debugPrint(''❌ Export activity logs failed: $e');
+      debugPrint('❌ Export activity logs failed: $e');
       return false;
     }
   }
@@ -242,7 +242,7 @@ class ExportService {
       final fileName = 'devices_${DateTime.now().millisecondsSinceEpoch}.csv';
       return await _saveAndShareText(csvData, fileName, 'Devices CSV Export');
     } catch (e) {
-      debugPrint(''❌ Export CSV failed: $e');
+      debugPrint('❌ Export CSV failed: $e');
       return false;
     }
   }
@@ -272,7 +272,7 @@ class ExportService {
         return false;
       }
     } catch (e) {
-      debugPrint(''❌ Save and share failed: $e');
+      debugPrint('❌ Save and share failed: $e');
       return false;
     }
   }
@@ -281,7 +281,7 @@ class ExportService {
     try {
       if (kIsWeb) {
 
-        debugPrint(''⚠️ Text export not fully supported on web');
+        debugPrint('⚠️ Text export not fully supported on web');
         return false;
       } else {
         final directory = await getTemporaryDirectory();
@@ -297,7 +297,7 @@ class ExportService {
         return result.status == ShareResultStatus.success;
       }
     } catch (e) {
-      debugPrint(''❌ Save and share text failed: $e');
+      debugPrint('❌ Save and share text failed: $e');
       return false;
     }
   }
