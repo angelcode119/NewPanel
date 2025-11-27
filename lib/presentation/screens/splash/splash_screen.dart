@@ -4,7 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
 import '../main/main_screen.dart';
 import '../../../data/services/api_service.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:math' as math;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,51 +14,76 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+    with TickerProviderStateMixin {
+  late AnimationController _mainController;
+  late AnimationController _pulseController;
+  late AnimationController _orbitController;
+  late AnimationController _glitchController;
+  
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _rotateAnimation;
+  late Animation<double> _slideAnimation;
+  late Animation<double> _glowAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    _mainController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+
+    _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
-    );
+    )..repeat(reverse: true);
+
+    _orbitController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
+
+    _glitchController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    )..repeat();
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+        parent: _mainController,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+        parent: _mainController,
+        curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
       ),
     );
 
-    _rotateAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _slideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
+        parent: _mainController,
+        curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic),
       ),
     );
 
-    _animationController.forward();
+    _glowAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _mainController.forward();
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
     try {
-
       ApiService().init();
-
       final isServerHealthy = await ApiService().checkHealth();
 
       if (!isServerHealthy) {
@@ -83,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-              const MainScreen(),
+                  const MainScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
@@ -95,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-              const LoginScreen(),
+                  const LoginScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
@@ -115,88 +140,109 @@ class _SplashScreenState extends State<SplashScreen>
   void _showErrorDialog(String title, String message) {
     showDialog(
       context: context,
+      barrierColor: Colors.black87,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.8)),
+        backgroundColor: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.all(19.2),
+          padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1A1F2E)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(12.8),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1A1F2E), Color(0xFF0F1419)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(0xFFFF006E).withOpacity(0.3),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF006E).withOpacity(0.3),
+                blurRadius: 40,
+                spreadRadius: -5,
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(12.8),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                    colors: [Color(0xFFFF006E), Color(0xFFFF5E78)],
                   ),
                   shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  size: 32,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                style: TextStyle(
-                  fontSize: 11.2,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white70
-                      : const Color(0xFF64748B),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  ),
-                  borderRadius: BorderRadius.circular(7.68),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      color: const Color(0xFFFF006E).withOpacity(0.5),
+                      blurRadius: 30,
+                      spreadRadius: 5,
                     ),
                   ],
                 ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _initializeApp();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 11.2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7.68),
-                    ),
+                child: const Icon(
+                  Icons.warning_rounded,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF94A3B8),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00F5FF), Color(0xFF0077FF)],
                   ),
-                  child: const Text(
-                    'Retry',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00F5FF).withOpacity(0.5),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _initializeApp();
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: const Center(
+                      child: Text(
+                        'RETRY CONNECTION',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -210,296 +256,448 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _mainController.dispose();
+    _pulseController.dispose();
+    _orbitController.dispose();
+    _glitchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-              const Color(0xFF0B0F19),
-              const Color(0xFF1A1F2E),
-            ]
-                : [
-              const Color(0xFF6366F1),
-              const Color(0xFF8B5CF6),
+            colors: [
+              Color(0xFF0A0E1A),
+              Color(0xFF1A1F2E),
+              Color(0xFF0F0F23),
             ],
+            stops: [0.0, 0.5, 1.0],
           ),
         ),
         child: Stack(
           children: [
+            // Animated background particles
+            ...List.generate(20, (index) {
+              return AnimatedBuilder(
+                animation: _orbitController,
+                builder: (context, child) {
+                  final angle = (_orbitController.value * 2 * math.pi) + 
+                               (index * 2 * math.pi / 20);
+                  final radius = 150.0 + (index * 15);
+                  final x = MediaQuery.of(context).size.width / 2 + 
+                           math.cos(angle) * radius;
+                  final y = MediaQuery.of(context).size.height / 2 + 
+                           math.sin(angle) * radius;
+                  
+                  return Positioned(
+                    left: x,
+                    top: y,
+                    child: Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00F5FF).withOpacity(0.6),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00F5FF).withOpacity(0.5),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
 
+            // Glowing orbs
             Positioned(
               top: -100,
-              right: -100,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  width: 240,
-                  height: 240,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(isDark ? 0.03 : 0.2),
-                        Colors.transparent,
-                      ],
+              right: -50,
+              child: AnimatedBuilder(
+                animation: _glowAnimation,
+                builder: (context, child) {
+                  return Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Color(0xFFFF006E).withOpacity(0.15 * _glowAnimation.value),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
+            
             Positioned(
-              bottom: -150,
-              left: -150,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  width: 320,
-                  height: 320,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(isDark ? 0.03 : 0.2),
-                        Colors.transparent,
-                      ],
+              bottom: -120,
+              left: -80,
+              child: AnimatedBuilder(
+                animation: _glowAnimation,
+                builder: (context, child) {
+                  return Container(
+                    width: 350,
+                    height: 350,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Color(0xFF00F5FF).withOpacity(0.15 * _glowAnimation.value),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
 
-            Align(
-              alignment: Alignment.topCenter,
+            // Main content
+            Center(
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: Container(
-                  margin: const EdgeInsets.only(top: 42),
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: Colors.white.withOpacity(0.25)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.bolt_rounded,
-                          color: Colors.black,
-                          size: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Bootstrapping ZeroDay systems...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: RotationTransition(
-                        turns: _rotateAnimation,
-                        child: Column(
+                child: AnimatedBuilder(
+                  animation: _slideAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, _slideAnimation.value),
+                      child: child,
+                    );
+                  },
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Animated logo container
+                        Stack(
+                          alignment: Alignment.center,
                           children: [
-                            SizedBox(
-                              width: 150,
-                              height: 150,
-                              child: Stack(
-                                alignment: Alignment.centerLeft,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      'Z',
-                                      style: TextStyle(
-                                        fontSize: 120,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white.withOpacity(0.95),
-                                        letterSpacing: -12,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black.withOpacity(0.55),
-                                            blurRadius: 20,
-                                            offset: const Offset(0, 8),
-                                          ),
-                                        ],
-                                      ),
+                            // Outer glow ring
+                            AnimatedBuilder(
+                              animation: _pulseController,
+                              builder: (context, child) {
+                                return Container(
+                                  width: 220 + (_pulseController.value * 20),
+                                  height: 220 + (_pulseController.value * 20),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFF00F5FF)
+                                          .withOpacity(0.3 * (1 - _pulseController.value)),
+                                      width: 3,
                                     ),
                                   ),
-                                  Positioned(
-                                    right: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 18,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.45),
-                                        borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(
-                                          color: Colors.white.withOpacity(0.3),
-                                          width: 1.2,
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        'ZeroDay Panel',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white,
-                                          letterSpacing: 1.2,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned.fill(
-                                    child: IgnorePointer(
-                                      child: Transform.rotate(
-                                        angle: -0.32,
-                                        child: Align(
-                                          alignment: Alignment.center,
-                                          child: Container(
-                                            width: 105,
-                                            height: 14,
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                colors: [
-                                                  Color(0xFFFF512F),
-                                                  Color(0xFFF09819),
-                                                ],
-                                              ),
-                                              borderRadius: BorderRadius.circular(28),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withOpacity(0.35),
-                                                  blurRadius: 12,
-                                                  offset: const Offset(0, 5),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                );
+                              },
+                            ),
+                            
+                            // Middle ring
+                            Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFF00F5FF).withOpacity(0.1),
+                                    const Color(0xFFFF006E).withOpacity(0.1),
+                                  ],
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.1),
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+
+                            // Center logo
+                            Container(
+                              width: 160,
+                              height: 160,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF1E2538),
+                                    Color(0xFF0F1419),
+                                  ],
+                                ),
+                                border: Border.all(
+                                  color: const Color(0xFF00F5FF).withOpacity(0.5),
+                                  width: 3,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF00F5FF).withOpacity(0.3),
+                                    blurRadius: 40,
+                                    spreadRadius: 5,
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 14),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.35),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                ),
-                              ),
-                              child: const Text(
-                                'Secure Remote Control Suite',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 1.1,
-                                  color: Colors.white,
-                                ),
+                              child: AnimatedBuilder(
+                                animation: _glitchController,
+                                builder: (context, child) {
+                                  final glitchOffset = (_glitchController.value * 100).floor() % 10 == 0
+                                      ? 2.0
+                                      : 0.0;
+                                  return Transform.translate(
+                                    offset: Offset(glitchOffset, 0),
+                                    child: Center(
+                                      child: ShaderMask(
+                                        shaderCallback: (bounds) {
+                                          return const LinearGradient(
+                                            colors: [
+                                              Color(0xFF00F5FF),
+                                              Color(0xFFFF006E),
+                                              Color(0xFF00F5FF),
+                                            ],
+                                          ).createShader(bounds);
+                                        },
+                                        child: const Text(
+                                          'Z',
+                                          style: TextStyle(
+                                            fontSize: 100,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                            letterSpacing: -5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 80),
 
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: CircularProgressIndicator(
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                        const SizedBox(height: 40),
+
+                        // Title with glitch effect
+                        AnimatedBuilder(
+                          animation: _glitchController,
+                          builder: (context, child) {
+                            final glitchOffset = (_glitchController.value * 100).floor() % 15 == 0
+                                ? 1.5
+                                : 0.0;
+                            return Transform.translate(
+                              offset: Offset(glitchOffset, 0),
+                              child: ShaderMask(
+                                shaderCallback: (bounds) {
+                                  return const LinearGradient(
+                                    colors: [
+                                      Color(0xFF00F5FF),
+                                      Color(0xFFFFFFFF),
+                                      Color(0xFFFF006E),
+                                    ],
+                                  ).createShader(bounds);
+                                },
+                                child: const Text(
+                                  'ZERODAY',
+                                  style: TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: 8,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Subtitle
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: const Color(0xFF00F5FF).withOpacity(0.3),
+                              width: 1.5,
                             ),
-                            strokeWidth: 4,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'ADVANCED CONTROL PANEL',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF00F5FF),
+                              letterSpacing: 3,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Calibrating defenses...',
+
+                        const SizedBox(height: 60),
+
+                        // Loading animation
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 70,
+                              height: 70,
+                              child: AnimatedBuilder(
+                                animation: _orbitController,
+                                builder: (context, child) {
+                                  return CustomPaint(
+                                    painter: HexagonLoadingPainter(
+                                      progress: _orbitController.value,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const Icon(
+                              Icons.lock_outline_rounded,
+                              color: Color(0xFF00F5FF),
+                              size: 28,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Loading text
+                        AnimatedBuilder(
+                          animation: _orbitController,
+                          builder: (context, child) {
+                            final dots = '.' * ((_orbitController.value * 3).floor() + 1);
+                            return Text(
+                              'INITIALIZING SYSTEMS$dots',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withOpacity(0.7),
+                                letterSpacing: 2,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Top status bar
+            Positioned(
+              top: 50,
+              left: 0,
+              right: 0,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF00F5FF).withOpacity(0.15),
+                          const Color(0xFFFF006E).withOpacity(0.15),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: const Color(0xFF00F5FF).withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF00F5FF).withOpacity(0.2),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00FF88),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF00FF88).withOpacity(0.8),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'SECURE CONNECTION ACTIVE',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white.withOpacity(0.85),
-                            letterSpacing: 0.8,
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
 
+            // Bottom version
             Positioned(
-              bottom: 24,
+              bottom: 30,
               left: 0,
               right: 0,
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: Text(
-                  'Version 1.0.0',
-                  style: TextStyle(
-                    fontSize: 9.6,
-                    color: isDark ? Colors.white38 : Colors.white60,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
+                child: const Column(
+                  children: [
+                    Text(
+                      'v1.0.0',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF475569),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'MILITARY GRADE ENCRYPTION',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -507,5 +705,65 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
     );
+  }
+}
+
+// Custom painter for hexagon loading animation
+class HexagonLoadingPainter extends CustomPainter {
+  final double progress;
+
+  HexagonLoadingPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    // Draw hexagon segments
+    for (int i = 0; i < 6; i++) {
+      final startAngle = (i * math.pi / 3) - math.pi / 2;
+      final endAngle = ((i + 1) * math.pi / 3) - math.pi / 2;
+      
+      final startPoint = Offset(
+        center.dx + radius * math.cos(startAngle),
+        center.dy + radius * math.sin(startAngle),
+      );
+      
+      final endPoint = Offset(
+        center.dx + radius * math.cos(endAngle),
+        center.dy + radius * math.sin(endAngle),
+      );
+
+      // Calculate if this segment should be highlighted
+      final segmentProgress = (progress * 6) % 6;
+      final isActive = segmentProgress >= i && segmentProgress < i + 1;
+
+      paint.color = isActive
+          ? const Color(0xFF00F5FF)
+          : const Color(0xFF00F5FF).withOpacity(0.2);
+
+      if (isActive) {
+        paint.shader = LinearGradient(
+          colors: [
+            const Color(0xFF00F5FF),
+            const Color(0xFFFF006E),
+          ],
+        ).createShader(Rect.fromPoints(startPoint, endPoint));
+      } else {
+        paint.shader = null;
+      }
+
+      canvas.drawLine(startPoint, endPoint, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(HexagonLoadingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
