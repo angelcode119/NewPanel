@@ -1,6 +1,6 @@
 {
-    "name": "rat",
-    "short_name": "rat",
+    "name": "pannel",
+    "short_name": "pannel",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

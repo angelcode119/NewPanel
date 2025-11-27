@@ -589,28 +589,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Clean previous builds
-        run: |
-          flutter clean
-          rm -rf build/web
-          echo "Previous build artifacts cleaned"
-
       - name: Build Web Release
         run: flutter build web --release
-
-      - name: Add build version to prevent cache
-        run: |
-          BUILD_VERSION="${{ github.run_number }}-$(date +%s)"
-          COMMIT_SHA=$(git rev-parse --short HEAD)
-          
-          # Add version meta tag to index.html
-          sed -i "s|<title>Panel</title>|<title>Panel</title>\n  <meta name=\"build-version\" content=\"${BUILD_VERSION}\">\n  <meta name=\"commit-sha\" content=\"${COMMIT_SHA}\">|g" build/web/index.html
-          
-          # Update version.json with build info
-          echo "{\"version\":\"${BUILD_VERSION}\",\"commit\":\"${COMMIT_SHA}\",\"build_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > build/web/build-info.json
-          
-          echo "Build version: ${BUILD_VERSION}"
-          echo "Commit SHA: ${COMMIT_SHA}"
 
       - name: Create Web Archive
         run: |

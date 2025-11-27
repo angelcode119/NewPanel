@@ -18,119 +18,21 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Admin Panel">
+  <meta name="description" content="A new Flutter project.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Panel">
+  <meta name="apple-mobile-web-app-title" content="pannel">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Panel</title>
+  <title>pannel</title>
   <link rel="manifest" href="manifest.json">
-
-  <!-- Disable Firebase for web -->
-  <script>
-    // Stub Firebase objects for web
-    window.firebase = {
-      initializeApp: function() { return Promise.resolve(); },
-      messaging: function() { return null; }
-    };
-  </script>
 </head>
 <body>
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = null;
-  </script>
-  <script>
-    // Check build version and clear cache if changed
-    (function() {
-      var currentVersion = document.querySelector('meta[name="build-version"]')?.getAttribute('content');
-      var storedVersion = localStorage.getItem('app-build-version');
-      
-      // If version changed or first load, clear everything
-      if (currentVersion && currentVersion !== storedVersion) {
-        console.log('Build version changed, clearing cache...', {
-          old: storedVersion,
-          new: currentVersion
-        });
-        
-        // Clear localStorage (except version)
-        var keys = Object.keys(localStorage);
-        keys.forEach(function(key) {
-          if (key !== 'app-build-version') {
-            localStorage.removeItem(key);
-          }
-        });
-        
-        // Store new version
-        localStorage.setItem('app-build-version', currentVersion);
-        
-        // Unregister all service workers
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            registrations.forEach(function(registration) {
-              registration.unregister();
-            });
-          });
-        }
-        
-        // Clear all caches
-        if ('caches' in window) {
-          caches.keys().then(function(names) {
-            names.forEach(function(name) {
-              caches.delete(name);
-            });
-          });
-        }
-      } else if (currentVersion) {
-        // Store version if not stored
-        localStorage.setItem('app-build-version', currentVersion);
-      }
-    })();
-    
-    // Unregister old service workers on every load (safety measure)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        if (registrations.length > 0) {
-          console.log('Found', registrations.length, 'service worker(s), unregistering...');
-          registrations.forEach(function(registration) {
-            registration.unregister();
-          });
-        }
-      });
-    }
-  </script>
-  <script src="flutter.js" defer></script>
-  <script>
-    window.addEventListener('load', function(ev) {
-      // Check if buildConfig is available (new Flutter method)
-      if (_flutter && _flutter.buildConfig) {
-        _flutter.loader.load({
-          serviceWorkerSettings: {
-            serviceWorkerVersion: serviceWorkerVersion,
-          },
-        });
-      } else if (_flutter && _flutter.loader && _flutter.loader.loadEntrypoint) {
-        // Fallback to old method
-        _flutter.loader.loadEntrypoint({
-          serviceWorker: {
-            serviceWorkerVersion: serviceWorkerVersion,
-          },
-          onEntrypointLoaded: function(engineInitializer) {
-            engineInitializer.initializeEngine().then(function(appRunner) {
-              appRunner.runApp();
-            });
-          }
-        });
-      } else {
-        console.error('Flutter loader not available');
-      }
-    });
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
