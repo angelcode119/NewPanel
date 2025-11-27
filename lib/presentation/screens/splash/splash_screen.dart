@@ -279,178 +279,207 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
+            Align(
+              alignment: Alignment.topCenter,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Container(
+                  margin: const EdgeInsets.only(top: 42),
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white.withOpacity(0.25)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.bolt_rounded,
+                          color: Colors.black,
+                          size: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Bootstrapping ZeroDay systems...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
                   FadeTransition(
                     opacity: _fadeAnimation,
                     child: ScaleTransition(
                       scale: _scaleAnimation,
                       child: RotationTransition(
                         turns: _rotateAnimation,
-                        child: Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [
-                                      const Color(0xFF0F172A),
-                                      const Color(0xFF1E1B4B),
-                                    ]
-                                  : [
-                                      const Color(0xFF111827),
-                                      const Color(0xFF1F2937),
-                                    ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
-                                blurRadius: 35,
-                                offset: const Offset(0, 18),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.08),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Text(
-                                'Z',
-                                style: TextStyle(
-                                  fontSize: 70,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  letterSpacing: -6,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withOpacity(0.5),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: IgnorePointer(
-                                  child: Transform.rotate(
-                                    angle: -0.3,
-                                    child: Align(
-                                      alignment: Alignment.center,
-                                      child: Container(
-                                        width: 95,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          gradient: const LinearGradient(
-                                            colors: [
-                                              Color(0xFFFF416C),
-                                              Color(0xFFFF4B2B),
-                                            ],
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              height: 150,
+                              child: Stack(
+                                alignment: Alignment.centerLeft,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Z',
+                                      style: TextStyle(
+                                        fontSize: 120,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white.withOpacity(0.95),
+                                        letterSpacing: -12,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black.withOpacity(0.55),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
                                           ),
-                                          borderRadius: BorderRadius.circular(24),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.3),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 18,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.45),
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.3),
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'ZeroDay Panel',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                          letterSpacing: 1.2,
                                         ),
                                       ),
                                     ),
                                   ),
+                                  Positioned.fill(
+                                    child: IgnorePointer(
+                                      child: Transform.rotate(
+                                        angle: -0.32,
+                                        child: Align(
+                                          alignment: Alignment.center,
+                                          child: Container(
+                                            width: 105,
+                                            height: 14,
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  Color(0xFFFF512F),
+                                                  Color(0xFFF09819),
+                                                ],
+                                              ),
+                                              borderRadius: BorderRadius.circular(28),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.35),
+                                                  blurRadius: 12,
+                                                  offset: const Offset(0, 5),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.35),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
                                 ),
                               ),
-                            ],
+                              child: const Text(
+                                'Secure Remote Control Suite',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.1,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 80),
+
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: CircularProgressIndicator(
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                            strokeWidth: 4,
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: isDark
-                            ? [Colors.white, Colors.white70]
-                            : [Colors.white, Colors.white],
-                      ).createShader(bounds),
-                      child: const Text(
-                        'ZeroDay Panel',
-                        style: TextStyle(
-                          fontSize: 38.4,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -2,
+                        const SizedBox(height: 16),
+                        Text(
+                          'Calibrating defenses...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withOpacity(0.85),
+                            letterSpacing: 0.8,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6.4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(isDark ? 0.1 : 0.2),
-                        borderRadius: BorderRadius.circular(12.8),
-                      ),
-                      child: Text(
-                        'Privacy Protected',
-                        style: TextStyle(
-                          fontSize: 11.2,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white70 : Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 60),
-
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isDark ? Colors.white : Colors.white,
-                        ),
-                        strokeWidth: 4,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Text(
-                      'Initializing...',
-                      style: TextStyle(
-                        fontSize: 11.2,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.white60 : Colors.white70,
-                        letterSpacing: 1,
-                      ),
+                      ],
                     ),
                   ),
                 ],
