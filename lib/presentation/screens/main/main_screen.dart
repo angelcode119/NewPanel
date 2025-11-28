@@ -816,16 +816,17 @@ class _DevicesPageState extends State<_DevicesPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Transform.scale(
-                      scale: _filterScale,
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        height: 32 * _filterScale,
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          children: [
+                    child: ClipRect(
+                      child: Transform.scale(
+                        scale: _filterScale,
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          height: 32 * _filterScale,
+                          margin: EdgeInsets.symmetric(vertical: 6 * _filterScale),
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: EdgeInsets.symmetric(horizontal: 12 * _filterScale),
+                            children: [
 
                             if (deviceProvider.statusFilter != null ||
                                 deviceProvider.connectionFilter != null ||
@@ -1008,11 +1009,12 @@ class _DevicesPageState extends State<_DevicesPage> {
 
             if (deviceProvider.totalDevices > 0)
               SliverToBoxAdapter(
-                child: Transform.scale(
-                  scale: _filterScale,
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: ClipRect(
+                  child: Transform.scale(
+                    scale: _filterScale,
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(12 * _filterScale, 0, 12 * _filterScale, 8 * _filterScale),
                     child: Row(
                       children: [
                         Container(
@@ -1066,11 +1068,12 @@ class _DevicesPageState extends State<_DevicesPage> {
 
             if (deviceProvider.devices.isNotEmpty && !deviceProvider.isLoading)
               SliverToBoxAdapter(
-                child: Transform.scale(
-                  scale: _filterScale,
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: ClipRect(
+                  child: Transform.scale(
+                    scale: _filterScale,
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(12 * _filterScale, 0, 12 * _filterScale, 12 * _filterScale),
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(

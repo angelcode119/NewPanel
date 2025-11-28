@@ -242,23 +242,19 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
 
   Widget _buildSearchCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark 
-            ? const Color(0xFF1E293B).withOpacity(0.7)
-            : Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(24),
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withOpacity(0.1) 
-              : const Color(0xFF6366F1).withOpacity(0.2),
-          width: 1.5,
+          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -268,30 +264,29 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.search_rounded,
-                  color: Colors.white,
+                  color: Color(0xFF6366F1),
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Search Parameters',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _buildTextField(
             controller: _queryController,
             label: 'Query',
@@ -320,13 +315,13 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
                   keyboardType: TextInputType.number,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildLanguageDropdown(isDark),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _buildSearchButton(),
         ],
       ),
@@ -363,19 +358,21 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
             ? const Color(0xFF0F172A).withOpacity(0.5)
             : const Color(0xFFF8FAFC),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+            width: 1,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: isDark 
-                ? Colors.white.withOpacity(0.1) 
-                : Colors.black.withOpacity(0.05),
+            color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+            width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: iconColor,
             width: 2,
@@ -388,14 +385,11 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
   Widget _buildLanguageDropdown(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark 
-            ? const Color(0xFF0F172A).withOpacity(0.5)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withOpacity(0.1) 
-              : Colors.black.withOpacity(0.05),
+          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+          width: 1,
         ),
       ),
       child: DropdownButtonFormField<String>(
@@ -406,8 +400,8 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        dropdownColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
         items: const [
           DropdownMenuItem(value: 'en', child: Text('English')),
           DropdownMenuItem(value: 'ru', child: Text('Russian')),
@@ -428,7 +422,7 @@ class _LeakLookupScreenState extends State<LeakLookupScreen> with TickerProvider
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: double.infinity,
-      height: 56,
+      height: 52,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: _isLoading
