@@ -1245,6 +1245,49 @@ class _SmsCard extends StatefulWidget {
 class _SmsCardState extends State<_SmsCard> {
   bool _isPressed = false;
 
+  String _deliveryStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return 'Delivered';
+      case 'sent':
+        return 'Sent';
+      case 'failed':
+        return 'Failed';
+      case 'not_delivered':
+        return 'Not Delivered';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  Color _deliveryStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return const Color(0xFF10B981);
+      case 'sent':
+        return const Color(0xFF3B82F6);
+      case 'failed':
+      case 'not_delivered':
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFF94A3B8);
+    }
+  }
+
+  IconData _deliveryStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return Icons.check_circle_rounded;
+      case 'sent':
+        return Icons.send_rounded;
+      case 'failed':
+      case 'not_delivered':
+        return Icons.error_rounded;
+      default:
+        return Icons.info_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final messageColor =

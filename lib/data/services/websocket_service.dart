@@ -44,7 +44,7 @@ class WebSocketService {
       _channel = WebSocketChannel.connect(uri);
       _channelSubscription = _channel!.stream.listen(
         _handleMessage,
-        onDone: (_) => _scheduleReconnect(),
+        onDone: () => _scheduleReconnect(),
         onError: (_) => _scheduleReconnect(),
         cancelOnError: true,
       );
