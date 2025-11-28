@@ -1015,7 +1015,7 @@ class _DevicesPageState extends State<_DevicesPage> {
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(12 * _filterScale, 0, 12 * _filterScale, 8 * _filterScale),
-                    child: Row(
+                      child: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1074,29 +1074,31 @@ class _DevicesPageState extends State<_DevicesPage> {
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(12 * _filterScale, 0, 12 * _filterScale, 12 * _filterScale),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF14B8A6).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF14B8A6).withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF14B8A6)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Showing ${deviceProvider.devices.length} devices (${deviceProvider.devices.where((d) => d.isActive).length} active, ${deviceProvider.devices.where((d) => d.isOnline).length} online)',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF14B8A6)),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF14B8A6).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF14B8A6).withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF14B8A6)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Showing ${deviceProvider.devices.length} devices (${deviceProvider.devices.where((d) => d.isActive).length} active, ${deviceProvider.devices.where((d) => d.isOnline).length} online)',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF14B8A6)),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
 
             if (deviceProvider.totalDevicesCount > 0)
               SliverToBoxAdapter(
