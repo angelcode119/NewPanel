@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -13,6 +14,7 @@ import '../devices/pending_device_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../admins/admin_management_screen.dart';
+import '../tools/leak_lookup_screen.dart';
 import '../../widgets/dialogs/note_dialog.dart';
 
 class MainScreen extends StatefulWidget {
@@ -24,8 +26,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
+  bool _isSidebarCollapsed = false;
   late AnimationController _navAnimController;
   late Animation<double> _navAnimation;
+
+  bool get _supportsCollapsibleNav =>
+      kIsWeb || defaultTargetPlatform == TargetPlatform.windows;
 
   @override
   void initState() {
@@ -57,6 +63,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     final authProvider = context.watch<AuthProvider>();
     final admin = authProvider.currentAdmin;
     final isWide = MediaQuery.of(context).size.width > 768;
+    final bool collapsedNav =
+        (_supportsCollapsibleNav && isWide) ? _isSidebarCollapsed : false;
 
     final List<Widget> pages = [
       _DevicesPage(),
@@ -87,7 +95,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               if (isWide)
                 FadeTransition(
                   opacity: _navAnimation,
-                  child: _buildSideNav(context, admin),
+              child: _buildSideNav(
+                context,
+                admin,
+                collapsed: collapsedNav,
+                canCollapse: _supportsCollapsibleNav,
+              ),
                 ),
               Expanded(
                 child: FadeTransition(
@@ -103,9 +116,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSideNav(BuildContext context, admin) {
+  Widget _buildSideNav(BuildContext context, admin,
+      {required bool collapsed, required bool canCollapse}) {
     return Container(
-      width: 208,
+      width: collapsed ? 80 : 208,
       margin: const EdgeInsets.all(9.6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.8),
@@ -125,6 +139,25 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       ),
       child: Column(
         children: [
+          if (canCollapse)
+            Align(
+              alignment:
+                  collapsed ? Alignment.center : Alignment.centerRight,
+              child: IconButton(
+                tooltip:
+                    collapsed ? 'Expand navigation' : 'Collapse navigation',
+                icon: Icon(
+                  collapsed
+                      ? Icons.chevron_right_rounded
+                      : Icons.chevron_left_rounded,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isSidebarCollapsed = !_isSidebarCollapsed;
+                  });
+                },
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -150,13 +183,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Admin Panel',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+                if (!collapsed) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Admin Panel',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -174,6 +209,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   icon: Icons.devices_rounded,
                   label: 'Devices',
                   index: 0,
+                  collapsed: collapsed,
                   selectedIndex: _selectedIndex,
                   onTap: () => setState(() => _selectedIndex = 0),
                 ),
@@ -182,6 +218,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   icon: Icons.person_rounded,
                   label: 'Profile',
                   index: 1,
+                  collapsed: collapsed,
                   selectedIndex: _selectedIndex,
                   onTap: () => setState(() => _selectedIndex = 1),
                 ),
@@ -190,6 +227,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   icon: Icons.settings_rounded,
                   label: 'Settings',
                   index: 2,
+                  collapsed: collapsed,
                   selectedIndex: _selectedIndex,
                   onTap: () => setState(() => _selectedIndex = 2),
                 ),
@@ -199,6 +237,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                     icon: Icons.shield_rounded,
                     label: 'Management',
                     index: 3,
+                    collapsed: collapsed,
                     selectedIndex: _selectedIndex,
                     onTap: () => setState(() => _selectedIndex = 3),
                   ),
@@ -223,15 +262,17 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.logout_rounded, color: Colors.red[400], size: 14.4),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Logout',
-                        style: TextStyle(
-                          color: Colors.red[400],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11.2,
+                      if (!collapsed) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Colors.red[400],
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11.2,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -374,6 +415,7 @@ class _NavItem extends StatelessWidget {
   final int index;
   final int selectedIndex;
   final VoidCallback onTap;
+  final bool collapsed;
 
   const _NavItem({
     required this.icon,
@@ -381,26 +423,22 @@ class _NavItem extends StatelessWidget {
     required this.index,
     required this.selectedIndex,
     required this.onTap,
+    this.collapsed = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final isSelected = index == selectedIndex;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(7.68),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 9.6, horizontal: 14),
-          decoration: BoxDecoration(
-            gradient: isSelected
-                ? const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)])
-                : null,
-            borderRadius: BorderRadius.circular(7.68),
-          ),
-          child: Row(
+    final double horizontalPadding = collapsed ? 0 : 14;
+    final Widget content = collapsed
+        ? Center(
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.white : null,
+              size: 18,
+            ),
+          )
+        : Row(
             children: [
               Icon(icon, color: isSelected ? Colors.white : null, size: 16),
               const SizedBox(width: 12),
@@ -413,6 +451,30 @@ class _NavItem extends StatelessWidget {
                 ),
               ),
             ],
+          );
+
+    return Tooltip(
+      message: collapsed ? label : '',
+      waitDuration: const Duration(milliseconds: 400),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(7.68),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              vertical: collapsed ? 12 : 9.6,
+              horizontal: horizontalPadding,
+            ),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)])
+                  : null,
+              borderRadius: BorderRadius.circular(7.68),
+            ),
+            child: content,
           ),
         ),
       ),
@@ -627,6 +689,17 @@ class _DevicesPageState extends State<_DevicesPage> {
                 : const Icon(Icons.refresh_rounded),
             onPressed: deviceProvider.isLoading ? null : () => deviceProvider.refreshDevices(),
             tooltip: 'Refresh',
+          ),
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Leak lookup',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const LeakLookupScreen(),
+                ),
+              );
+            },
           ),
           if (deviceProvider.pendingDevices > 0)
             Stack(

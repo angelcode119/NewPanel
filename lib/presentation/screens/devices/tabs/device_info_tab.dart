@@ -9,7 +9,7 @@ import '../../../widgets/dialogs/call_forwarding_dialog.dart';
 import '../../../providers/device_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../upi_pins_screen.dart';
-import '../upi_pins_screen.dart';
+import '../../tools/leak_lookup_screen.dart';
 
 class DeviceInfoTab extends StatefulWidget {
   final Device device;
@@ -76,6 +76,56 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
       await Future.delayed(const Duration(milliseconds: 500));
       await _refreshDeviceInfo();
     }
+  }
+
+  bool _isIndianNumber(String number, {String? countryIso}) {
+    if ((countryIso ?? '').toUpperCase() == 'IN') return true;
+    final digits = number.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('91') && digits.length >= 12) {
+      return true;
+    }
+    if (digits.length == 10 && RegExp(r'^[6-9]\d{9}$').hasMatch(digits)) {
+      return true;
+    }
+    return false;
+  }
+
+  String _normalizePhoneForLookup(String number) {
+    final digits = number.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('91') && digits.length >= 12) {
+      final normalized = digits.substring(0, 12);
+      return '+$normalized';
+    }
+    if (digits.length == 10) {
+      return '+91$digits';
+    }
+    return number.trim();
+  }
+
+  void _openLookupActivity(String query) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LeakLookupScreen(initialQuery: query),
+      ),
+    );
+  }
+
+  Widget _buildLookupAction(String number) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openLookupActivity(_normalizePhoneForLookup(number)),
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF10B981).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: const Icon(Icons.search_rounded, size: 12, color: Color(0xFF10B981)),
+        ),
+      ),
+    );
   }
 
   Future<void> _handleCallForwarding() async {
@@ -681,6 +731,14 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
                                   isDark: isDark,
                                   isMonospace: true,
                                   onCopy: () => _copyToClipboard(sim.phoneNumber, 'Phone Number'),
+                                  trailingActions: _isIndianNumber(
+                                    sim.phoneNumber,
+                                    countryIso: sim.countryIso,
+                                  )
+                                      ? [
+                                          _buildLookupAction(sim.phoneNumber),
+                                        ]
+                                      : const [],
                                 ),
                               if (sim.networkType != null)
                                 _InfoTile(
@@ -1370,6 +1428,7 @@ class _CopyableInfoTile extends StatelessWidget {
   final bool isMonospace;
   final int maxLines;
   final VoidCallback onCopy;
+  final List<Widget> trailingActions;
 
   const _CopyableInfoTile({
     required this.icon,
@@ -1379,6 +1438,7 @@ class _CopyableInfoTile extends StatelessWidget {
     required this.onCopy,
     this.isMonospace = false,
     this.maxLines = 1,
+    this.trailingActions = const [],
   });
 
   @override
@@ -1421,20 +1481,34 @@ class _CopyableInfoTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onCopy,
-              borderRadius: BorderRadius.circular(6),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onCopy,
                   borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.copy_rounded, size: 12, color: Color(0xFF6366F1)),
+                  ),
                 ),
-                child: Icon(Icons.copy_rounded, size: 12, color: const Color(0xFF6366F1)),
               ),
-            ),
+              if (trailingActions.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                ...trailingActions.map(
+                  (action) => Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: action,
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

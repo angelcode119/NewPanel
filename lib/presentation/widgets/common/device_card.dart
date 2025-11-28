@@ -44,6 +44,75 @@ class _DeviceCardState extends State<DeviceCard> {
     }
   }
 
+  Widget _buildNotePreview(bool isDark) {
+    final Color accentColor = _getNoteColor();
+    final Color borderColor = accentColor == Colors.transparent
+        ? (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.08))
+        : accentColor.withOpacity(0.4);
+    final Color backgroundColor = accentColor == Colors.transparent
+        ? (isDark ? const Color(0xFF1E2435) : const Color(0xFFF4F3FF))
+        : accentColor.withOpacity(isDark ? 0.25 : 0.14);
+    final Color titleColor = accentColor == Colors.transparent
+        ? (isDark ? Colors.white : Colors.deepPurple.shade600)
+        : accentColor;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.sticky_note_2_rounded,
+                size: 14,
+                color: titleColor,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  widget.device.notePriorityLabel,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                widget.device.noteTimeAgo,
+                style: TextStyle(
+                  fontSize: 8,
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            widget.device.noteMessage ?? '',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10,
+              height: 1.2,
+              color: isDark
+                  ? Colors.white.withOpacity(0.9)
+                  : Colors.black.withOpacity(0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -299,6 +368,11 @@ class _DeviceCardState extends State<DeviceCard> {
               const SizedBox(height: 10),
               Divider(height: 0.8, color: (isDark ? Colors.white : Colors.black).withOpacity(0.1)),
               const SizedBox(height: 10),
+
+              if (widget.device.hasNote) ...[
+                _buildNotePreview(isDark),
+                const SizedBox(height: 12),
+              ],
 
               if (widget.device.isActive)
                 Row(

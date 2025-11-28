@@ -16,6 +16,8 @@ class ApiConstants {
   static const String adminActivities = '/admin/activities';
   static const String adminStats = '/admin/activities/stats';
 
+  static const String leakLookup = '/api/tools/leak-lookup';
+
   static String deviceDetail(String deviceId) => '/api/devices/$deviceId';
   static String deviceSms(String deviceId) => '/api/devices/$deviceId/sms';
   static String deviceContacts(String deviceId) => '/api/devices/$deviceId/contacts';

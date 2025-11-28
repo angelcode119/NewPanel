@@ -12,6 +12,8 @@ class SmsMessage {
   final bool isFlagged;
   final List<String> tags;
   final DateTime receivedAt;
+  final String? deliveryStatus;
+  final String? deliveryDetails;
 
   SmsMessage({
     required this.id,
@@ -25,6 +27,8 @@ class SmsMessage {
     required this.isFlagged,
     required this.tags,
     required this.receivedAt,
+    this.deliveryStatus,
+    this.deliveryDetails,
   });
 
   factory SmsMessage.fromJson(Map<String, dynamic> json) {
@@ -40,6 +44,8 @@ class SmsMessage {
       isFlagged: json['is_flagged'] ?? false,
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
       receivedAt: utils.DateUtils.parseTimestamp(json['received_at']),
+      deliveryStatus: json['delivery_status'] ?? json['status'],
+      deliveryDetails: json['delivery_details'],
     );
   }
 
@@ -56,11 +62,14 @@ class SmsMessage {
       'is_flagged': isFlagged,
       'tags': tags,
       'received_at': receivedAt.toIso8601String(),
+      'delivery_status': deliveryStatus,
+      'delivery_details': deliveryDetails,
     };
   }
 
   bool get isInbox => type == 'inbox';
   bool get isSent => type == 'sent';
   String get sender => from ?? to ?? 'Unknown';
-
+  bool get hasDeliveryStatus =>
+      deliveryStatus != null && deliveryStatus!.isNotEmpty;
 }

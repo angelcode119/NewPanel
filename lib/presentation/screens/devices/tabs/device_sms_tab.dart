@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../data/models/device.dart';
@@ -9,6 +11,7 @@ import '../sms_detail_screen.dart';
 import '../dialogs/send_sms_dialog.dart';
 import '../../../widgets/common/empty_state.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../data/services/websocket_service.dart';
 
 enum TimeFilter { all, today, yesterday, week, month }
 
@@ -41,6 +44,8 @@ class DeviceSmsTab extends StatefulWidget {
 class _DeviceSmsTabState extends State<DeviceSmsTab> {
   final DeviceRepository _repository = DeviceRepository();
   final TextEditingController _searchController = TextEditingController();
+  final WebSocketService _webSocketService = WebSocketService();
+  StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
   List<SmsMessage> _messages = [];
   List<SmsMessage> _filteredMessages = [];
@@ -59,11 +64,13 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
   int _totalPages = 0;
 
   final List<int> _pageSizeOptions = [100, 250, 500];
+  String? _subscribedDeviceId;
 
   @override
   void initState() {
     super.initState();
     _fetchMessages();
+    _initializeRealtime();
   }
 
   @override
@@ -71,13 +78,66 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.device.deviceId != widget.device.deviceId) {
       _fetchMessages();
+      _subscribeToDevice(widget.device.deviceId);
     }
   }
 
   @override
   void dispose() {
+    _wsSubscription?.cancel();
+    if (_subscribedDeviceId != null) {
+      _webSocketService.unsubscribeFromDevice(_subscribedDeviceId!);
+    }
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeRealtime() async {
+    await _webSocketService.ensureConnected();
+    _subscribeToDevice(widget.device.deviceId);
+    _wsSubscription ??=
+        _webSocketService.smsStream.listen(_handleRealtimeSms);
+  }
+
+  void _subscribeToDevice(String deviceId) {
+    if (deviceId.isEmpty) return;
+    if (_subscribedDeviceId == deviceId) return;
+
+    if (_subscribedDeviceId != null) {
+      _webSocketService.unsubscribeFromDevice(_subscribedDeviceId!);
+    }
+
+    _webSocketService.subscribeToDevice(deviceId);
+    _subscribedDeviceId = deviceId;
+  }
+
+  void _handleRealtimeSms(Map<String, dynamic> event) {
+    if (!mounted) return;
+
+    final eventType = event['type'];
+    if (eventType != 'sms' && eventType != 'sms_update') return;
+    if (event['device_id'] != widget.device.deviceId) return;
+
+    final smsData = event['sms'];
+    if (smsData is! Map<String, dynamic>) return;
+
+    final sms = SmsMessage.fromJson(smsData);
+    final index = _messages.indexWhere((m) => m.id == sms.id);
+
+    if (index >= 0) {
+      setState(() {
+        _messages[index] = sms;
+      });
+      _applyFilters();
+      return;
+    }
+
+    if (eventType == 'sms') {
+      setState(() {
+        _messages = [sms, ..._messages];
+      });
+      _applyFilters();
+    }
   }
 
   Future<void> _fetchMessages() async {
@@ -215,15 +275,14 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
 
       case CategoryFilter.credit:
         return messages
-            .where((m) =>
-        (m.body.toLowerCase().contains('credit') ||
-            m.body.toLowerCase().contains('credited') ||
-            m.body.toLowerCase().contains('deposited') ||
-            m.body.toLowerCase().contains('received')) &&
-            (m.body.toLowerCase().contains('rs') ||
-                m.body.toLowerCase().contains('inr') ||
-                m.body.contains('₹') ||
-                RegExp(r'Rs\.?\s*[\d,]+').hasMatch(m.body)))
+            .where((m) {
+              final body = m.body.toLowerCase();
+              return body.contains('credit') ||
+                  body.contains('credited') ||
+                  body.contains('deposited') ||
+                  body.contains('received') ||
+                  body.contains('home credit');
+            })
             .toList();
 
       case CategoryFilter.debit:
@@ -1009,6 +1068,49 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
         body.toLowerCase().contains('bal')) &&
         !body.toLowerCase().contains('low balance');
   }
+
+  String _deliveryStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return 'Delivered';
+      case 'sent':
+        return 'Sent';
+      case 'failed':
+        return 'Failed';
+      case 'not_delivered':
+        return 'Not Delivered';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  Color _deliveryStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return const Color(0xFF10B981);
+      case 'sent':
+        return const Color(0xFF3B82F6);
+      case 'failed':
+      case 'not_delivered':
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFF94A3B8);
+    }
+  }
+
+  IconData _deliveryStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return Icons.check_circle_rounded;
+      case 'sent':
+        return Icons.send_rounded;
+      case 'failed':
+      case 'not_delivered':
+        return Icons.error_rounded;
+      default:
+        return Icons.info_rounded;
+    }
+  }
 }
 
 class _ActionButton extends StatelessWidget {
@@ -1563,6 +1665,48 @@ class _SmsCardState extends State<_SmsCard> {
                                   color: const Color(0xFF3B82F6),
                                 ),
                               ],
+                              if (widget.message.hasDeliveryStatus) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: _deliveryStatusColor(
+                                      widget.message.deliveryStatus!,
+                                    ).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                      color: _deliveryStatusColor(
+                                        widget.message.deliveryStatus!,
+                                      ).withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _deliveryStatusIcon(
+                                            widget.message.deliveryStatus!),
+                                        size: 9,
+                                        color: _deliveryStatusColor(
+                                            widget.message.deliveryStatus!),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        _deliveryStatusLabel(
+                                            widget.message.deliveryStatus!),
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w700,
+                                          color: _deliveryStatusColor(
+                                              widget.message.deliveryStatus!),
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ],
@@ -1599,6 +1743,21 @@ class _SmsCardState extends State<_SmsCard> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (widget.message.deliveryDetails != null &&
+                    widget.message.deliveryDetails!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.message.deliveryDetails!,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: widget.isDark
+                          ? Colors.white54
+                          : const Color(0xFF94A3B8),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           ),
