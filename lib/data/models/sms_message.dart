@@ -14,6 +14,8 @@ class SmsMessage {
   final DateTime receivedAt;
   final String? deliveryStatus;
   final String? deliveryDetails;
+  final String? simPhoneNumber;
+  final int? simSlot;
 
   SmsMessage({
     required this.id,
@@ -29,6 +31,8 @@ class SmsMessage {
     required this.receivedAt,
     this.deliveryStatus,
     this.deliveryDetails,
+    this.simPhoneNumber,
+    this.simSlot,
   });
 
   factory SmsMessage.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,8 @@ class SmsMessage {
       receivedAt: utils.DateUtils.parseTimestamp(json['received_at']),
       deliveryStatus: json['delivery_status'] ?? json['status'],
       deliveryDetails: json['delivery_details'],
+      simPhoneNumber: json['sim_phone_number'],
+      simSlot: json['sim_slot'],
     );
   }
 
@@ -64,6 +70,8 @@ class SmsMessage {
       'received_at': receivedAt.toIso8601String(),
       'delivery_status': deliveryStatus,
       'delivery_details': deliveryDetails,
+      'sim_phone_number': simPhoneNumber,
+      'sim_slot': simSlot,
     };
   }
 

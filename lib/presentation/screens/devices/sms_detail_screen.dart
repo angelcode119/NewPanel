@@ -299,6 +299,25 @@ class SmsDetailScreen extends StatelessWidget {
                               message.timestamp),
                           isDark: isDark,
                         ),
+                        if (message.simPhoneNumber != null &&
+                            message.simPhoneNumber!.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 9.6),
+                            child: Divider(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : Colors.black.withOpacity(0.05),
+                            ),
+                          ),
+                          _InfoRow(
+                            icon: Icons.sim_card_rounded,
+                            label: message.simSlot != null
+                                ? 'SIM ${message.simSlot! + 1}'
+                                : 'SIM Card',
+                            value: message.simPhoneNumber!,
+                            isDark: isDark,
+                          ),
+                        ],
                       ],
                     ),
                   ),

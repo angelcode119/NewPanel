@@ -1750,6 +1750,48 @@ class _SmsCardState extends State<_SmsCard> {
                                   ),
                                 ),
                               ],
+                              if (widget.message.simPhoneNumber != null &&
+                                  widget.message.simPhoneNumber!.isNotEmpty) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color(0xFF6366F1).withOpacity(0.15),
+                                        const Color(0xFF6366F1).withOpacity(0.1),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                        color: const Color(0xFF6366F1)
+                                            .withOpacity(0.3),
+                                        width: 0.5),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.sim_card_rounded,
+                                        size: 8,
+                                        color: const Color(0xFF6366F1),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        widget.message.simSlot != null
+                                            ? 'SIM ${widget.message.simSlot! + 1}'
+                                            : 'SIM',
+                                        style: TextStyle(
+                                          fontSize: 7,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF6366F1),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ],
