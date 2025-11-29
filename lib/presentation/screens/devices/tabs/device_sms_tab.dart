@@ -179,12 +179,37 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
       
       debugPrint('📨 Received SMS: ${sms.from} -> ${sms.to}, type: $eventType, body: ${sms.body.substring(0, sms.body.length > 20 ? 20 : sms.body.length)}...');
 
-    if (index >= 0) {
-      // Existing message - update it
-      setState(() {
-        _messages[index] = sms;
-        // If it's an update (like delivery status), mark as new temporarily
-        if (eventType == 'sms_update') {
+      if (index >= 0) {
+        // Existing message - update it
+        setState(() {
+          _messages[index] = sms;
+          // If it's an update (like delivery status), mark as new temporarily
+          if (eventType == 'sms_update') {
+            _newMessageIds.add(sms.id);
+            _newMessageTimestamps[sms.id] = DateTime.now();
+            _newMessageCount++;
+            
+            // Remove from new messages after 5 seconds
+            Future.delayed(const Duration(seconds: 5), () {
+              if (mounted) {
+                setState(() {
+                  _newMessageIds.remove(sms.id);
+                  _newMessageTimestamps.remove(sms.id);
+                  if (_newMessageCount > 0) _newMessageCount--;
+                });
+              }
+            });
+          }
+        });
+        _applyFilters();
+        return;
+      }
+
+      // New message (both 'sms' and 'sms_update' can be new)
+      if (eventType == 'sms' || eventType == 'sms_update') {
+        setState(() {
+          _messages = [sms, ..._messages];
+          // Mark as new message
           _newMessageIds.add(sms.id);
           _newMessageTimestamps[sms.id] = DateTime.now();
           _newMessageCount++;
@@ -199,33 +224,11 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
               });
             }
           });
-        }
-      });
-      _applyFilters();
-      return;
-    }
-
-    // New message (both 'sms' and 'sms_update' can be new)
-    if (eventType == 'sms' || eventType == 'sms_update') {
-      setState(() {
-        _messages = [sms, ..._messages];
-        // Mark as new message
-        _newMessageIds.add(sms.id);
-        _newMessageTimestamps[sms.id] = DateTime.now();
-        _newMessageCount++;
-        
-        // Remove from new messages after 5 seconds
-        Future.delayed(const Duration(seconds: 5), () {
-          if (mounted) {
-            setState(() {
-              _newMessageIds.remove(sms.id);
-              _newMessageTimestamps.remove(sms.id);
-              if (_newMessageCount > 0) _newMessageCount--;
-            });
-          }
         });
-      });
-      _applyFilters();
+        _applyFilters();
+      }
+    } catch (e) {
+      debugPrint('❌ Error handling realtime SMS: $e');
     }
   }
 
