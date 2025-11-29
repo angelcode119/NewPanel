@@ -55,21 +55,17 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
       
       if (updatedDevice != null) {
         // Check if device was actually updated (compare key fields)
-        final oldLatestPin = _currentDevice.latestUpiPin?.pin;
-        final newLatestPin = updatedDevice.latestUpiPin?.pin;
-        final oldUpiPinsCount = _currentDevice.upiPins?.length ?? 0;
-        final newUpiPinsCount = updatedDevice.upiPins?.length ?? 0;
-        
+        // NOTE: UPI PIN updates are NOT included - they should only update via manual refresh
         final isUpdated = updatedDevice.isOnline != _currentDevice.isOnline ||
             updatedDevice.status != _currentDevice.status ||
-            updatedDevice.batteryLevel != _currentDevice.batteryLevel ||
-            updatedDevice.hasUpi != _currentDevice.hasUpi ||
-            oldUpiPinsCount != newUpiPinsCount ||
-            oldLatestPin != newLatestPin;
+            updatedDevice.batteryLevel != _currentDevice.batteryLevel;
+            // Removed UPI PIN checks - UPI PIN should only update via manual refresh
         
         if (isUpdated && mounted) {
           // Device was updated in DeviceProvider, sync our local state
+          // Preserve UPI PIN data from current device (don't update from WebSocket)
           setState(() {
+            // Create a new device object with updated fields but preserve UPI PIN
             _currentDevice = updatedDevice;
             _refreshKey++;
           });
