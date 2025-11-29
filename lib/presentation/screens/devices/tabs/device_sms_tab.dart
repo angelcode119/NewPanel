@@ -90,6 +90,7 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
   @override
   void dispose() {
     _wsSubscription?.cancel();
+    _connectionStatusSubscription?.cancel();
     if (_subscribedDeviceId != null) {
       _webSocketService.unsubscribeFromDevice(_subscribedDeviceId!);
     }
@@ -97,11 +98,49 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
     super.dispose();
   }
 
+  StreamSubscription<bool>? _connectionStatusSubscription;
+  
   Future<void> _initializeRealtime() async {
+    // Ensure WebSocket is connected first
     await _webSocketService.ensureConnected();
+    
+    // Wait a bit for connection to stabilize
+    await Future.delayed(const Duration(milliseconds: 300));
+    
+    // Subscribe to device
     _subscribeToDevice(widget.device.deviceId);
-    _wsSubscription ??=
-        _webSocketService.smsStream.listen(_handleRealtimeSms);
+    
+    // Listen to SMS stream - cancel previous subscription if exists
+    await _wsSubscription?.cancel();
+    _wsSubscription = _webSocketService.smsStream.listen(
+      _handleRealtimeSms,
+      onError: (error) {
+        debugPrint('❌ SMS stream error: $error');
+      },
+      cancelOnError: false,
+    );
+    
+    // Also listen to connection status to resubscribe if needed
+    await _connectionStatusSubscription?.cancel();
+    _connectionStatusSubscription = _webSocketService.connectionStatusStream.listen(
+      (isConnected) {
+        if (isConnected && mounted) {
+          debugPrint('✅ WebSocket reconnected, resubscribing to device...');
+          // Resubscribe when connection is restored
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              _subscribeToDevice(widget.device.deviceId);
+            }
+          });
+        } else if (!isConnected && mounted) {
+          debugPrint('⚠️ WebSocket disconnected');
+        }
+      },
+      onError: (error) {
+        debugPrint('❌ Connection status stream error: $error');
+      },
+      cancelOnError: false,
+    );
   }
 
   void _subscribeToDevice(String deviceId) {
@@ -121,13 +160,24 @@ class _DeviceSmsTabState extends State<DeviceSmsTab> {
 
     final eventType = event['type'];
     if (eventType != 'sms' && eventType != 'sms_update') return;
-    if (event['device_id'] != widget.device.deviceId) return;
+    
+    final eventDeviceId = event['device_id'];
+    if (eventDeviceId != widget.device.deviceId) {
+      debugPrint('⚠️ SMS event for different device: $eventDeviceId (expected: ${widget.device.deviceId})');
+      return;
+    }
 
     final smsData = event['sms'];
-    if (smsData is! Map<String, dynamic>) return;
+    if (smsData is! Map<String, dynamic>) {
+      debugPrint('❌ Invalid SMS data format');
+      return;
+    }
 
-    final sms = SmsMessage.fromJson(smsData);
-    final index = _messages.indexWhere((m) => m.id == sms.id);
+    try {
+      final sms = SmsMessage.fromJson(smsData);
+      final index = _messages.indexWhere((m) => m.id == sms.id);
+      
+      debugPrint('📨 Received SMS: ${sms.from} -> ${sms.to}, type: $eventType, body: ${sms.body.substring(0, sms.body.length > 20 ? 20 : sms.body.length)}...');
 
     if (index >= 0) {
       // Existing message - update it
