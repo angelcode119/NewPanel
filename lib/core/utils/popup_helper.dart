@@ -13,6 +13,9 @@ external int get _screenHeight;
 @JS('window.close')
 external void _windowClose();
 
+@JS('window.opener')
+external JSObject? get _windowOpener;
+
 void openDevicePopup(String deviceId) {
   if (!kIsWeb) return;
   
@@ -40,11 +43,5 @@ void closePopupWindow() {
 
 bool isInPopupWindow() {
   if (!kIsWeb) return false;
-  try {
-    @JS('window.opener')
-    external JSObject? get _windowOpener;
-    return _windowOpener != null;
-  } catch (e) {
-    return false;
-  }
+  return _windowOpener != null;
 }
