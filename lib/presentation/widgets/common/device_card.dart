@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../../data/models/device.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/date_utils.dart' as utils;
-import '../../../core/utils/window_service.dart';
+import '../../providers/multi_device_provider.dart';
 
 class DeviceCard extends StatefulWidget {
   final Device device;
@@ -349,41 +350,47 @@ class _DeviceCardState extends State<DeviceCard> {
                         ),
                       ),
 
-                    // Open in new tab button (only for web)
                     if (kIsWeb)
-                      Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                          ),
-                          borderRadius: BorderRadius.circular(6.4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF6366F1).withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                      Builder(
+                        builder: (context) {
+                          final multiDeviceProvider = Provider.of<MultiDeviceProvider>(context, listen: false);
+                          
+                          return Container(
+                            margin: const EdgeInsets.only(left: 4),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                              ),
+                              borderRadius: BorderRadius.circular(6.4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              WindowService().openDeviceInNewTab(widget.device.deviceId);
-                            },
-                            borderRadius: BorderRadius.circular(6.4),
-                            child: const Padding(
-                              padding: EdgeInsets.all(6.4),
-                              child: Icon(
-                                Icons.open_in_new_rounded,
-                                color: Colors.white,
-                                size: 12,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  multiDeviceProvider.openDevice(widget.device);
+                                },
+                                borderRadius: BorderRadius.circular(6.4),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(6.4),
+                                  child: Icon(
+                                    Icons.open_in_new_rounded,
+                                    color: Colors.white,
+                                    size: 12,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
+
                   ],
 
                   const SizedBox(width: 6),

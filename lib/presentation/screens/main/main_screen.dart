@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/utils/html_import.dart' as html;
 import '../../providers/auth_provider.dart';
 import '../../providers/device_provider.dart';
 import '../../providers/admin_provider.dart';
@@ -18,6 +17,8 @@ import '../admins/admin_management_screen.dart';
 import '../tools/leak_lookup_screen.dart';
 import '../../widgets/dialogs/note_dialog.dart';
 import '../../../data/services/websocket_service.dart';
+import '../../widgets/multi_device_view.dart';
+import '../../providers/multi_device_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -159,9 +160,27 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
               ),
                 ),
               Expanded(
-                child: FadeTransition(
-                  opacity: _navAnimation,
-                  child: pages[_selectedIndex],
+                child: Stack(
+                  children: [
+                    FadeTransition(
+                      opacity: _navAnimation,
+                      child: pages[_selectedIndex],
+                    ),
+                    if (kIsWeb)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Consumer<MultiDeviceProvider>(
+                          builder: (context, provider, _) {
+                            if (!provider.hasOpenDevices) {
+                              return const SizedBox.shrink();
+                            }
+                            return const MultiDeviceView();
+                          },
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -1045,22 +1064,12 @@ class _DevicesPageState extends State<_DevicesPage> {
                               isNew: deviceProvider.newDeviceIds.contains(device.deviceId),
                               onTap: () {
                                 if (device.isActive) {
-                                  // Update hash for web
-                                  if (kIsWeb) {
-                                    html.window.location.hash = '/device/${device.deviceId}';
-                                  }
-                                  
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => DeviceDetailScreen(device: device),
-                                      settings: RouteSettings(name: '/device/${device.deviceId}'),
                                     ),
                                   ).then((_) {
-                                    // Clear hash when returning
-                                    if (kIsWeb) {
-                                      html.window.location.hash = '';
-                                    }
                                     // Auto refresh when returning from device detail screen
                                     final deviceProvider = context.read<DeviceProvider>();
                                     deviceProvider.fetchDevices();

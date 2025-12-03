@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
-import '../../../core/utils/html_import.dart' as html;
 import '../../../data/models/device.dart';
 import '../../../data/repositories/device_repository.dart';
 import '../../../presentation/providers/device_provider.dart';
@@ -14,19 +13,12 @@ import 'tabs/device_logs_tab.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DeviceDetailScreen extends StatefulWidget {
-  final Device? device;
-  final String? deviceId;
+  final Device device;
 
   const DeviceDetailScreen({
     super.key,
-    this.device,
-    this.deviceId,
-  }) : assert(device != null || deviceId != null, 'Either device or deviceId must be provided');
-
-  /// Factory constructor for creating from route (deviceId only)
-  factory DeviceDetailScreen.fromRoute(String deviceId) {
-    return DeviceDetailScreen(deviceId: deviceId);
-  }
+    required this.device,
+  });
 
   @override
   State<DeviceDetailScreen> createState() => _DeviceDetailScreenState();
@@ -44,88 +36,18 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
   static const Duration _autoRefreshInterval = Duration(minutes: 1);
   StreamSubscription? _deviceUpdateSubscription;
 
-  bool _isLoadingDevice = false;
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    _currentDevice = widget.device;
+    _startAutoRefresh();
+    _listenToDeviceUpdates();
     
-    if (widget.device != null) {
-      _currentDevice = widget.device!;
-      _startAutoRefresh();
-      _listenToDeviceUpdates();
-      
-      // Automatically refresh device data when screen opens to get latest data (including UPI PIN)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _refreshDevice(showSnackbar: false);
-      });
-    } else if (widget.deviceId != null) {
-      // Load device from DeviceProvider or repository
-      _isLoadingDevice = true;
-      _loadDeviceFromId(widget.deviceId!);
-    }
-  }
-
-  Future<void> _loadDeviceFromId(String deviceId) async {
-    try {
-      final deviceProvider = context.read<DeviceProvider>();
-      Device? device = deviceProvider.getDeviceById(deviceId);
-      
-      if (device == null) {
-        // If not in provider, fetch from repository
-        final updatedDevice = await _repository.getDevice(deviceId);
-        if (updatedDevice != null) {
-          device = updatedDevice;
-        } else {
-          throw Exception('Device not found');
-        }
-      }
-      
-      if (mounted) {
-        setState(() {
-          _currentDevice = device!;
-          _isLoadingDevice = false;
-        });
-        _startAutoRefresh();
-        _listenToDeviceUpdates();
-        
-        // Automatically refresh device data when screen opens
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _refreshDevice(showSnackbar: false);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingDevice = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_rounded, color: Colors.white, size: 18),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Failed to load device: ${e.toString()}',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: () => _loadDeviceFromId(deviceId),
-            ),
-          ),
-        );
-      }
-    }
+    // Automatically refresh device data when screen opens to get latest data (including UPI PIN)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshDevice(showSnackbar: false);
+    });
   }
   
   void _listenToDeviceUpdates() {
@@ -320,33 +242,6 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (_isLoadingDevice) {
-      return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: Container(
-            margin: const EdgeInsets.all(6.4),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(7.68),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
-              onPressed: () => Navigator.pop(context),
-              padding: EdgeInsets.zero,
-            ),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: NestedScrollView(
@@ -375,13 +270,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: () {
-                    // Clear hash when going back
-                    if (kIsWeb) {
-                      html.window.location.hash = '';
-                    }
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
                 ),
               ),
