@@ -36,7 +36,6 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
   bool _hasRefreshedOnOpen = false;
   DateTime? _lastRefreshTime;
   DateTime? _lastWindowBlurTime;
-  DateTime? _lastWindowBlurTime;
 
   bool get _supportsCollapsibleNav =>
       kIsWeb || defaultTargetPlatform == TargetPlatform.windows;
