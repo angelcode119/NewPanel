@@ -125,8 +125,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
     final now = DateTime.now();
     if (_lastRefreshTime != null) {
       final timeSinceLastRefresh = now.difference(_lastRefreshTime!);
-      if (timeSinceLastRefresh.inSeconds < 20) {
-        return;
+      if (kIsWeb) {
+        if (timeSinceLastRefresh.inSeconds < 10) {
+          return;
+        }
+      } else {
+        if (timeSinceLastRefresh.inSeconds < 5) {
+          return;
+        }
       }
     }
     
@@ -210,38 +216,33 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
                           },
                         ),
                       ),
-                    if (defaultTargetPlatform == TargetPlatform.windows)
-                      Consumer<MultiDeviceProvider>(
-                        builder: (context, provider, _) {
-                          if (!provider.hasOpenDevices) {
-                            return const SizedBox.shrink();
-                          }
-                          return Positioned(
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 600,
-                            child: Container(
-                              margin: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const MultiDeviceView(),
-                            ),
-                          );
-                        },
-                      ),
                   ],
                 ),
               ),
+              if (defaultTargetPlatform == TargetPlatform.windows)
+                Consumer<MultiDeviceProvider>(
+                  builder: (context, provider, _) {
+                    if (!provider.hasOpenDevices) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      width: 600,
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const MultiDeviceView(),
+                    );
+                  },
+                ),
             ],
           ),
         ],
@@ -345,7 +346,16 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
                   index: 0,
                   collapsed: collapsed,
                   selectedIndex: _selectedIndex,
-                  onTap: () => setState(() => _selectedIndex = 0),
+                  onTap: () {
+                    if (_selectedIndex != 0) {
+                      setState(() => _selectedIndex = 0);
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _refreshDevices(force: false);
+                        }
+                      });
+                    }
+                  },
                 ),
                 const SizedBox(height: 6),
                 _NavItem(
@@ -441,7 +451,18 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
         borderRadius: BorderRadius.circular(12.8),
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
+          onTap: (index) {
+            if (index != _selectedIndex) {
+              setState(() => _selectedIndex = index);
+              if (index == 0) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    _refreshDevices(force: false);
+                  }
+                });
+              }
+            }
+          },
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           elevation: 0,
