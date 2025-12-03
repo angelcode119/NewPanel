@@ -35,6 +35,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
   bool _hasInitialized = false;
   bool _hasRefreshedOnOpen = false;
   DateTime? _lastRefreshTime;
+  DateTime? _lastWindowBlurTime;
+  DateTime? _lastWindowBlurTime;
 
   bool get _supportsCollapsibleNav =>
       kIsWeb || defaultTargetPlatform == TargetPlatform.windows;
@@ -85,11 +87,29 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Refresh when app comes to foreground
-    if (state == AppLifecycleState.resumed && mounted) {
+    
+    if (!kIsWeb) {
+      if (state == AppLifecycleState.resumed && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _refreshDevices(force: true);
+        });
+      }
+      return;
+    }
+    
+    if (kIsWeb && state == AppLifecycleState.resumed && mounted) {
+      final now = DateTime.now();
+      if (_lastWindowBlurTime != null) {
+        final timeSinceBlur = now.difference(_lastWindowBlurTime!);
+        if (timeSinceBlur.inSeconds < 2) {
+          return;
+        }
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _refreshDevices(force: true);
       });
+    } else if (kIsWeb && state == AppLifecycleState.paused) {
+      _lastWindowBlurTime = DateTime.now();
     }
   }
 
