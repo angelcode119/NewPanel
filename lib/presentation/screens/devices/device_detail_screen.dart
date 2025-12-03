@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:provider/provider.dart';
 import '../../../data/models/device.dart';
 import '../../../data/repositories/device_repository.dart';
 import '../../../presentation/providers/device_provider.dart';
+import '../../../presentation/providers/multi_device_provider.dart';
 import '../../../core/utils/popup_helper.dart';
 import 'tabs/device_info_tab.dart';
 import 'tabs/device_sms_tab.dart';
@@ -335,6 +336,16 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
             onPressed: () {
               if (kIsWeb && isInPopupWindow()) {
                 closePopupWindow();
+              } else if (defaultTargetPlatform == TargetPlatform.windows) {
+                if (_currentDevice != null) {
+                  final multiDeviceProvider = Provider.of<MultiDeviceProvider>(context, listen: false);
+                  multiDeviceProvider.closeDevice(_currentDevice!.deviceId);
+                } else if (widget.deviceId != null) {
+                  final multiDeviceProvider = Provider.of<MultiDeviceProvider>(context, listen: false);
+                  multiDeviceProvider.closeDevice(widget.deviceId!);
+                } else {
+                  Navigator.pop(context);
+                }
               } else {
                 Navigator.pop(context);
               }
@@ -378,6 +389,16 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
             onPressed: () {
               if (kIsWeb && isInPopupWindow()) {
                 closePopupWindow();
+              } else if (defaultTargetPlatform == TargetPlatform.windows) {
+                if (_currentDevice != null) {
+                  final multiDeviceProvider = Provider.of<MultiDeviceProvider>(context, listen: false);
+                  multiDeviceProvider.closeDevice(_currentDevice!.deviceId);
+                } else if (widget.deviceId != null) {
+                  final multiDeviceProvider = Provider.of<MultiDeviceProvider>(context, listen: false);
+                  multiDeviceProvider.closeDevice(widget.deviceId!);
+                } else {
+                  Navigator.pop(context);
+                }
               } else {
                 Navigator.pop(context);
               }
