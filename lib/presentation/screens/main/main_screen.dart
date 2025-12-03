@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:html' as html if (dart.library.html);
+import 'dart:html' as html if (dart.library.html) 'dart:html';
+import '../../../core/utils/html_stub.dart' if (!dart.library.html) 'html_stub.dart' as html;
 import '../../providers/auth_provider.dart';
 import '../../providers/device_provider.dart';
 import '../../providers/admin_provider.dart';
