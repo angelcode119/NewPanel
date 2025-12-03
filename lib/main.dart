@@ -86,7 +86,7 @@ class _MyAppState extends State<MyApp> {
     _sessionExpiredSubscription = ApiService().sessionExpiredStream.listen((_) {
       _handleSessionExpired();
     });
-
+  }
 
   void _handleSessionExpired() {
     debugPrint('Handling session expired - showing notification and redirecting to login');
