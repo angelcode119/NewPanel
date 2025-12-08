@@ -53,7 +53,7 @@ class _EditNoteDialogState extends State<EditNoteDialog> {
       if (mounted) {
         if (success) {
           final deviceProvider = context.read<DeviceProvider>();
-          await deviceProvider.refreshDevice(widget.device.deviceId);
+          await deviceProvider.refreshSingleDevice(widget.device.deviceId);
           
           Navigator.of(context).pop(true);
           

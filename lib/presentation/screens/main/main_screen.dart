@@ -836,8 +836,6 @@ class _DevicesPageState extends State<_DevicesPage> {
         title: const Text('Devices'),
         automaticallyImplyLeading: false,
         actions: [
-          // Payload statistics removed - using Firebase instead
-          ),
           IconButton(
             icon: deviceProvider.isLoading
                 ? SizedBox(
