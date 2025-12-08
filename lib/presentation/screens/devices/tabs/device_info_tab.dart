@@ -5,6 +5,7 @@ import '../../../../data/models/device.dart';
 import '../../../../data/repositories/device_repository.dart';
 import '../../../../core/utils/date_utils.dart' as utils;
 import '../dialogs/edit_settings_dialog.dart';
+import '../dialogs/edit_note_dialog.dart';
 import '../../../widgets/dialogs/call_forwarding_dialog.dart';
 import '../../../providers/device_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -70,6 +71,18 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => EditSettingsDialog(device: _currentDevice),
+    );
+
+    if (result == true && mounted) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _refreshDeviceInfo();
+    }
+  }
+
+  Future<void> _handleEditNote() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => EditNoteDialog(device: _currentDevice),
     );
 
     if (result == true && mounted) {
@@ -692,18 +705,186 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
 
             const SizedBox(height: 12),
 
-            if (_currentDevice.simInfo != null && _currentDevice.simInfo!.isNotEmpty)
-              _ModernCard(
-                isDark: isDark,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionHeader(
-                      icon: Icons.sim_card_rounded,
-                      title: 'SIM Card Information',
-                      color: const Color(0xFF06B6D4),
+            _ModernCard(
+              isDark: isDark,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SectionHeader(
+                          icon: Icons.sim_card_rounded,
+                          title: _currentDevice.simInfo != null && _currentDevice.simInfo!.isNotEmpty
+                              ? 'SIM Card Information'
+                              : 'Device Note',
+                          color: const Color(0xFF06B6D4),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)]),
+                          borderRadius: BorderRadius.circular(6.4),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _isRefreshing ? null : _handleEditNote,
+                            borderRadius: BorderRadius.circular(6.4),
+                            child: Container(
+                              padding: const EdgeInsets.all(6.4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _currentDevice.hasAdminNote ? Icons.edit_rounded : Icons.add_rounded,
+                                    size: 11.2,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _currentDevice.hasAdminNote ? 'Edit Note' : 'Add Note',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (_currentDevice.hasAdminNote) ...[
+                    if (_currentDevice.adminNotePriority != null && _currentDevice.adminNotePriority != 'none')
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: _currentDevice.adminNotePriority == 'lowbalance'
+                              ? const Color(0xFFEF4444).withOpacity(0.1)
+                              : const Color(0xFF10B981).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _currentDevice.adminNotePriority == 'lowbalance'
+                                ? const Color(0xFFEF4444).withOpacity(0.3)
+                                : const Color(0xFF10B981).withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: _currentDevice.adminNotePriority == 'lowbalance'
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _currentDevice.adminNotePriority == 'lowbalance'
+                                  ? 'Low Balance ⚠️'
+                                  : 'High Balance ✅',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: _currentDevice.adminNotePriority == 'lowbalance'
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.note_rounded,
+                            size: 16,
+                            color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _currentDevice.adminNoteMessage ?? '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    if (_currentDevice.adminNoteCreatedAt != null) ...[
+                      const SizedBox(height: 8),
+                      _InfoTile(
+                        icon: Icons.access_time_rounded,
+                        label: 'Created',
+                        value: utils.DateUtils.formatForDisplay(_currentDevice.adminNoteCreatedAt!),
+                        isDark: isDark,
+                      ),
+                    ],
+                    if (_currentDevice.simInfo != null && _currentDevice.simInfo!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Divider(
+                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                        height: 1,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ] else if (_currentDevice.simInfo == null || _currentDevice.simInfo!.isEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 14,
+                            color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'No note added yet. Click "Add Note" to create one.',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (_currentDevice.simInfo != null && _currentDevice.simInfo!.isNotEmpty) ...[
                     ..._currentDevice.simInfo!.asMap().entries.map((entry) {
                       final sim = entry.value;
                       return Padding(

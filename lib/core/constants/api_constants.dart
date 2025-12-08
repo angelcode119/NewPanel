@@ -25,6 +25,7 @@ class ApiConstants {
   static String deviceLogs(String deviceId) => '/api/devices/$deviceId/logs';
   static String deviceCommand(String deviceId) => '/api/devices/$deviceId/command';
   static String deviceSettings(String deviceId) => '/api/devices/$deviceId/settings';
+  static String deviceNote(String deviceId) => '/api/devices/$deviceId/note';
   static String adminUpdate(String username) => '/admin/$username';
   static String adminDelete(String username) => '/admin/$username';
   static String adminDevices(String username) => '/api/admin/$username/devices';

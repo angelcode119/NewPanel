@@ -97,6 +97,7 @@ class AdminProvider extends ChangeNotifier {
     String? telegram2faChatId,
     List<TelegramBot>? telegramBots,
     DateTime? expiresAt,
+    bool? removeExpiresAt,
   }) async {
     try {
       _isLoading = true;
@@ -111,6 +112,7 @@ class AdminProvider extends ChangeNotifier {
         telegram2faChatId: telegram2faChatId,
         telegramBots: telegramBots,
         expiresAt: expiresAt,
+        removeExpiresAt: removeExpiresAt,
       );
 
       _isLoading = false;

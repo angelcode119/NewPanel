@@ -19,6 +19,7 @@ class _EditAdminFullScreenState extends State<EditAdminFullScreen>
     with SingleTickerProviderStateMixin {
   late String _selectedRole;
   late bool _isActive;
+  DateTime? _expiresAt;
 
   late TextEditingController _telegram2faChatIdController;
 
@@ -39,6 +40,7 @@ class _EditAdminFullScreenState extends State<EditAdminFullScreen>
     super.initState();
     _selectedRole = widget.admin.role;
     _isActive = widget.admin.isActive;
+    _expiresAt = widget.admin.expiresAt;
     
     _telegram2faChatIdController = TextEditingController(
       text: widget.admin.telegram2faChatId ?? '',
@@ -97,12 +99,30 @@ class _EditAdminFullScreenState extends State<EditAdminFullScreen>
     }
 
     final adminProvider = context.read<AdminProvider>();
+    
+    // Determine if expiresAt changed
+    DateTime? expiresAtToUpdate;
+    bool? removeExpiresAt;
+    
+    final hadExpiresAt = widget.admin.expiresAt != null;
+    final hasExpiresAt = _expiresAt != null;
+    
+    if (hadExpiresAt && !hasExpiresAt) {
+      // User removed expiry date
+      removeExpiresAt = true;
+    } else if (_expiresAt != widget.admin.expiresAt) {
+      // User changed expiry date
+      expiresAtToUpdate = _expiresAt;
+    }
+    
     final success = await adminProvider.updateAdmin(
       widget.admin.username,
       role: _selectedRole != widget.admin.role ? _selectedRole : null,
       isActive: _isActive != widget.admin.isActive ? _isActive : null,
       telegram2faChatId: _telegram2faChatIdController.text.trim(),
       telegramBots: telegramBots,
+      expiresAt: expiresAtToUpdate,
+      removeExpiresAt: removeExpiresAt,
     );
 
     setState(() => _isLoading = false);
@@ -272,6 +292,168 @@ class _EditAdminFullScreenState extends State<EditAdminFullScreen>
                           });
                         },
                   contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.orange.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.orange.withOpacity(0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(
+                        Icons.event_rounded,
+                        color: Colors.orange,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Account Expiry Date',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Set when this admin account will expire. Leave empty for unlimited access.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _isLoading
+                        ? null
+                        : () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _expiresAt ??
+                                  DateTime.now().add(const Duration(days: 30)),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 3650)),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: Color(0xFFF59E0B),
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _expiresAt = DateTime(
+                                  picked.year,
+                                  picked.month,
+                                  picked.day,
+                                  23,
+                                  59,
+                                  59,
+                                );
+                              });
+                            }
+                          },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.03)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 18,
+                            color: _expiresAt == null
+                                ? Colors.grey
+                                : Colors.orange,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _expiresAt == null
+                                      ? 'No expiry date (Unlimited)'
+                                      : 'Expires: ${_expiresAt!.day}/${_expiresAt!.month}/${_expiresAt!.year}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _expiresAt == null
+                                        ? Colors.grey
+                                        : Colors.orange.shade700,
+                                  ),
+                                ),
+                                if (_expiresAt != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.admin.isExpired
+                                        ? '⚠️ Account has expired'
+                                        : widget.admin.expiryStatus,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: widget.admin.isExpired
+                                          ? Colors.red
+                                          : Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          if (_expiresAt != null)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              onPressed: _isLoading
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _expiresAt = null;
+                                      });
+                                    },
+                              tooltip: 'Remove expiry date',
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -113,6 +113,7 @@ class AdminRepository {
     String? telegram2faChatId,
     List<TelegramBot>? telegramBots,
     DateTime? expiresAt,
+    bool? removeExpiresAt,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -130,7 +131,11 @@ class AdminRepository {
         data['telegram_bots'] = telegramBots.map((bot) => bot.toJson()).toList();
       }
 
-      if (expiresAt != null) {
+      // Handle expires_at: if removeExpiresAt is true, send null to remove it
+      // Otherwise, if expiresAt is not null, send the new date
+      if (removeExpiresAt == true) {
+        data['expires_at'] = null;
+      } else if (expiresAt != null) {
         data['expires_at'] = expiresAt.toIso8601String();
       }
 

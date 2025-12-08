@@ -341,6 +341,10 @@ class Device {
   final String? notePriority;
   final String? noteMessage;
   final DateTime? noteCreatedAt;
+  
+  final String? adminNotePriority;
+  final String? adminNoteMessage;
+  final DateTime? adminNoteCreatedAt;
 
   Device({
     required this.deviceId,
@@ -400,6 +404,9 @@ class Device {
     this.notePriority,
     this.noteMessage,
     this.noteCreatedAt,
+    this.adminNotePriority,
+    this.adminNoteMessage,
+    this.adminNoteCreatedAt,
   });
 
   factory Device.fromJson(Map<String, dynamic> json) {
@@ -487,6 +494,11 @@ class Device {
       noteCreatedAt: json['note_created_at'] != null
           ? _parseTimestamp(json['note_created_at'])
           : null,
+      adminNotePriority: json['admin_note_priority'],
+      adminNoteMessage: json['admin_note_message'],
+      adminNoteCreatedAt: json['admin_note_created_at'] != null
+          ? _parseTimestamp(json['admin_note_created_at'])
+          : null,
     );
   }
 
@@ -561,6 +573,10 @@ class Device {
       if (noteMessage != null) 'note_message': noteMessage,
       if (noteCreatedAt != null)
         'note_created_at': noteCreatedAt!.toIso8601String(),
+      if (adminNotePriority != null) 'admin_note_priority': adminNotePriority,
+      if (adminNoteMessage != null) 'admin_note_message': adminNoteMessage,
+      if (adminNoteCreatedAt != null)
+        'admin_note_created_at': adminNoteCreatedAt!.toIso8601String(),
     };
   }
 
@@ -571,6 +587,8 @@ class Device {
   bool get isPending => !isActive;
 
   bool get hasNote => noteMessage != null && noteMessage!.isNotEmpty;
+  
+  bool get hasAdminNote => adminNoteMessage != null && adminNoteMessage!.isNotEmpty;
 
   bool get hasLowBalanceNote => notePriority == 'lowbalance';
   bool get hasHighBalanceNote => notePriority == 'highbalance';

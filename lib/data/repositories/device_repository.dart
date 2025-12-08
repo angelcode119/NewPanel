@@ -250,6 +250,26 @@ class DeviceRepository {
     }
   }
 
+  Future<bool> updateNote(
+      String deviceId,
+      String? priority,
+      String? message,
+      ) async {
+    try {
+      final response = await _apiService.put(
+        ApiConstants.deviceNote(deviceId),
+        data: {
+          if (priority != null) 'priority': priority,
+          if (message != null) 'message': message,
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception('Error updating note');
+    }
+  }
+
   Future<Stats?> getStats({String? adminUsername}) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -271,4 +291,5 @@ class DeviceRepository {
       throw Exception('Error fetching statistics');
     }
   }
+
 }

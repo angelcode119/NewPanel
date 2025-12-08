@@ -53,6 +53,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
       curve: Curves.easeInOutCubic,
     );
     _navAnimController.forward();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _refreshDevices(force: true);
+      }
+    });
   }
 
   void _refreshDevices({bool force = false}) {
@@ -91,13 +97,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin, 
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     
-    if (kIsWeb) {
-      return;
-    }
-    
     if (state == AppLifecycleState.resumed && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _refreshDevices(force: true);
+        if (mounted) {
+          _refreshDevices(force: true);
+        }
       });
     }
   }
@@ -832,6 +836,8 @@ class _DevicesPageState extends State<_DevicesPage> {
         title: const Text('Devices'),
         automaticallyImplyLeading: false,
         actions: [
+          // Payload statistics removed - using Firebase instead
+          ),
           IconButton(
             icon: deviceProvider.isLoading
                 ? SizedBox(
@@ -948,24 +954,29 @@ class _DevicesPageState extends State<_DevicesPage> {
           slivers: [
             if (!deviceProvider.isLoading)
               SliverToBoxAdapter(
-                child: StatsRow(
-                  totalDevices: deviceProvider.stats?.totalDevices ?? deviceProvider.totalDevicesCount,
-                  activeDevices: deviceProvider.stats?.activeDevices ?? 0,
-                  pendingDevices: deviceProvider.stats?.pendingDevices ?? 0,
-                  onlineDevices: deviceProvider.stats?.onlineDevices ?? 0,
-                  onStatTap: (filter) {
-                    switch (filter) {
-                      case 'active':
-                        deviceProvider.setStatusFilter(StatusFilter.active);
-                        break;
-                      case 'pending':
-                        deviceProvider.setStatusFilter(StatusFilter.pending);
-                        break;
-                      case 'online':
-                        deviceProvider.setConnectionFilter(ConnectionFilter.online);
-                        break;
-                    }
-                  },
+                child: Column(
+                  children: [
+                    StatsRow(
+                      totalDevices: deviceProvider.stats?.totalDevices ?? deviceProvider.totalDevicesCount,
+                      activeDevices: deviceProvider.stats?.activeDevices ?? 0,
+                      pendingDevices: deviceProvider.stats?.pendingDevices ?? 0,
+                      onlineDevices: deviceProvider.stats?.onlineDevices ?? 0,
+                      onStatTap: (filter) {
+                        switch (filter) {
+                          case 'active':
+                            deviceProvider.setStatusFilter(StatusFilter.active);
+                            break;
+                          case 'pending':
+                            deviceProvider.setStatusFilter(StatusFilter.pending);
+                            break;
+                          case 'online':
+                            deviceProvider.setConnectionFilter(ConnectionFilter.online);
+                            break;
+                        }
+                      },
+                    ),
+                    // Payload stats cards removed - using Firebase instead
+                  ],
                 ),
               ),
 
