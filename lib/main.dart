@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,8 @@ import 'package:firebase_core/firebase_core.dart'
     if (dart.library.html) 'core/utils/firebase_stub.dart' as firebase_import;
 import 'package:firebase_messaging/firebase_messaging.dart'
     if (dart.library.html) 'core/utils/firebase_stub.dart' as messaging_import;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart'
+    if (dart.library.html) 'core/utils/firebase_crashlytics_stub.dart' as crashlytics_import;
 import 'data/services/fcm_service.dart'
     if (dart.library.html) 'core/utils/fcm_service_stub.dart' as fcm_import;
 
@@ -41,33 +44,60 @@ Future<void> _firebaseMessagingBackgroundHandler(dynamic message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await runZonedGuarded(() async {
+    if (_isMobilePlatform) {
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+        overlays: [SystemUiOverlay.top],
+      );
 
-  if (_isMobilePlatform) {
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-      overlays: [SystemUiOverlay.top],
-    );
-
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-  }
-
-  await StorageService().init();
-
-  if (_isMobilePlatform) {
-    try {
-      await firebase_import.Firebase.initializeApp();
-      messaging_import.FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-      await fcm_import.FCMService().initialize();
-    } catch (e) {
-      debugPrint('Firebase initialization failed: $e');
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
     }
-  } else {
-    debugPrint('Firebase skipped for platform: $defaultTargetPlatform');
-  }
 
-  runApp(const MyApp());
+    await StorageService().init();
+
+    if (_isMobilePlatform) {
+      try {
+        await firebase_import.Firebase.initializeApp();
+
+        FlutterError.onError = (details) {
+          FlutterError.presentError(details);
+          crashlytics_import.FirebaseCrashlytics.instance
+              .recordFlutterFatalError(details);
+        };
+
+        PlatformDispatcher.instance.onError = (error, stack) {
+          crashlytics_import.FirebaseCrashlytics.instance
+              .recordError(error, stack, fatal: true);
+          return true;
+        };
+
+        messaging_import.FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+        await fcm_import.FCMService().initialize();
+      } catch (e, stack) {
+        debugPrint('Firebase initialization failed: $e');
+        try {
+          await crashlytics_import.FirebaseCrashlytics.instance
+              .recordError(e, stack, fatal: true);
+        } catch (_) {}
+      }
+    } else {
+      debugPrint('Firebase skipped for platform: $defaultTargetPlatform');
+    }
+
+    runApp(const MyApp());
+  }, (error, stack) async {
+    if (_isMobilePlatform) {
+      try {
+        await crashlytics_import.FirebaseCrashlytics.instance
+            .recordError(error, stack, fatal: true);
+      } catch (_) {}
+    } else {
+      debugPrint('Uncaught zone error: $error');
+    }
+  });
 }
 
 class MyApp extends StatefulWidget {
