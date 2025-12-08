@@ -852,37 +852,38 @@ class _DeviceInfoTabState extends State<DeviceInfoTab> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                  ] else if (_currentDevice.simInfo == null || _currentDevice.simInfo!.isEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 14,
-                            color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                  ] else ...[
+                    if (_currentDevice.simInfo == null || _currentDevice.simInfo!.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'No note added yet. Click "Add Note" to create one.',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 14,
+                              color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'No note added yet. Click "Add Note" to create one.',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                   if (_currentDevice.simInfo != null && _currentDevice.simInfo!.isNotEmpty) ...[
                     ..._currentDevice.simInfo!.asMap().entries.map((entry) {
