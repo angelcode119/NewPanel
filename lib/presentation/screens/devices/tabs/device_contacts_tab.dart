@@ -32,6 +32,13 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
   String? _errorMessage;
   String _searchQuery = '';
 
+  int _currentPage = 1;
+  int _pageSize = 100;
+  int _totalContacts = 0;
+  int _totalPages = 0;
+
+  final List<int> _pageSizeOptions = [100, 250, 500];
+
   @override
   void initState() {
     super.initState();
@@ -61,10 +68,16 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
     });
 
     try {
-      final result =
-      await _repository.getDeviceContacts(widget.device.deviceId);
+      final skip = (_currentPage - 1) * _pageSize;
+      final result = await _repository.getDeviceContacts(
+        widget.device.deviceId,
+        skip: skip,
+        limit: _pageSize,
+      );
       setState(() {
         _contacts = result['contacts'] as List<Contact>;
+        _totalContacts = result['total'] as int;
+        _totalPages = (_totalContacts / _pageSize).ceil();
         _applySearch();
         _isLoading = false;
       });
@@ -96,6 +109,9 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
   void _setSearchQuery(String query) {
     setState(() {
       _searchQuery = query;
+      if (query.isNotEmpty && _currentPage != 1) {
+        _currentPage = 1;
+      }
       _applySearch();
     });
   }
@@ -132,8 +148,10 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
+    return Stack(
       children: [
+        Column(
+          children: [
 
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -266,7 +284,9 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${_filteredContacts.length} Contacts',
+                        _searchQuery.isNotEmpty
+                            ? '${_filteredContacts.length} Results'
+                            : '${_totalContacts} Contacts',
                         style: const TextStyle(
                           fontSize: 9.6,
                           fontWeight: FontWeight.w700,
@@ -306,7 +326,12 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
               : RefreshIndicator(
             onRefresh: _fetchContacts,
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                MediaQuery.of(context).padding.bottom + 80,
+              ),
               itemCount: _filteredContacts.length,
               itemBuilder: (context, index) {
                 final contact = _filteredContacts[index];
@@ -318,6 +343,213 @@ class _DeviceContactsTabState extends State<DeviceContactsTab> {
             ),
           ),
         ),
+          ],
+        ),
+
+        if (!_isLoading && _contacts.isNotEmpty && _totalPages > 1 && _searchQuery.isEmpty)
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+            right: 16,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Material(
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(25),
+                  shadowColor: Colors.black.withOpacity(0.3),
+                  child: PopupMenuButton<int>(
+                    initialValue: _pageSize,
+                    onSelected: (int value) {
+                      setState(() {
+                        _pageSize = value;
+                        _currentPage = 1;
+                      });
+                      _fetchContacts();
+                    },
+                    offset: const Offset(0, -10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF374151),
+                                  const Color(0xFF4B5563)
+                                ]
+                              : [
+                                  const Color(0xFFF1F5F9),
+                                  const Color(0xFFE2E8F0)
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.more_vert_rounded,
+                        color: isDark
+                            ? const Color(0xFFE8EAF0)
+                            : const Color(0xFF475569),
+                        size: 18,
+                      ),
+                    ),
+                    itemBuilder: (BuildContext context) =>
+                        _pageSizeOptions.map((int size) {
+                          final isSelected = _pageSize == size;
+                          return PopupMenuItem<int>(
+                            value: size,
+                            height: 40,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                gradient: isSelected
+                                    ? const LinearGradient(
+                                        colors: [
+                                          Color(0xFF6366F1),
+                                          Color(0xFF8B5CF6)
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                    : null,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isSelected
+                                        ? Icons.check_circle_rounded
+                                        : Icons.circle_outlined,
+                                    size: 16,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : isDark
+                                            ? const Color(0xFF9CA3AF)
+                                            : const Color(0xFF64748B),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '$size items',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w600,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : isDark
+                                              ? const Color(0xFFE8EAF0)
+                                              : const Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Material(
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(30),
+                  shadowColor: Colors.black.withOpacity(0.3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF6366F1).withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: const BorderRadius.horizontal(
+                                left: Radius.circular(30)),
+                            onTap: _currentPage > 1
+                                ? () {
+                                    setState(() => _currentPage--);
+                                    _fetchContacts();
+                                  }
+                                : null,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Icon(
+                                Icons.chevron_left_rounded,
+                                color: _currentPage > 1
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.3),
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            '$_currentPage/$_totalPages',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: const BorderRadius.horizontal(
+                                right: Radius.circular(30)),
+                            onTap: _currentPage < _totalPages
+                                ? () {
+                                    setState(() => _currentPage++);
+                                    _fetchContacts();
+                                  }
+                                : null,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Icon(
+                                Icons.chevron_right_rounded,
+                                color: _currentPage < _totalPages
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.3),
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

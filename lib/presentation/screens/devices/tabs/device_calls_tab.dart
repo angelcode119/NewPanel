@@ -202,31 +202,23 @@ class _DeviceCallsTabState extends State<DeviceCallsTab>
                     dividerColor: Colors.transparent,
                     padding: const EdgeInsets.all(6),
                     tabs: [
-                      _buildTab('All', Icons.call_rounded, _calls.length),
+                      _buildTab('All', Icons.call_rounded, _totalCalls),
                       _buildTab(
                           'In',
                           Icons.call_received_rounded,
-                          _calls
-                              .where((c) => c.callType.toLowerCase() == 'incoming')
-                              .length),
+                          null), // Don't show count for filtered tabs
                       _buildTab(
                           'Out',
                           Icons.call_made_rounded,
-                          _calls
-                              .where((c) => c.callType.toLowerCase() == 'outgoing')
-                              .length),
+                          null),
                       _buildTab(
                           'Miss',
                           Icons.phone_missed_rounded,
-                          _calls
-                              .where((c) => c.callType.toLowerCase() == 'missed')
-                              .length),
+                          null),
                       _buildTab(
                           'Reject',
                           Icons.phone_disabled_rounded,
-                          _calls
-                              .where((c) => c.callType.toLowerCase() == 'rejected')
-                              .length),
+                          null),
                     ],
                   ),
                 ),
@@ -501,7 +493,7 @@ class _DeviceCallsTabState extends State<DeviceCallsTab>
     );
   }
 
-  Widget _buildTab(String label, IconData icon, int count) {
+  Widget _buildTab(String label, IconData icon, int? count) {
     return Tab(
       height: 38,
       child: Column(
@@ -514,7 +506,7 @@ class _DeviceCallsTabState extends State<DeviceCallsTab>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(label),
-              if (count > 0) ...[
+              if (count != null && count > 0) ...[
                 const SizedBox(width: 3),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
