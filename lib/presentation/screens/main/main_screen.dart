@@ -963,324 +963,338 @@ class _DevicesPageState extends State<_DevicesPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => deviceProvider.refreshDevices(),
-        child: CustomScrollView(
-          slivers: [
-            if (!deviceProvider.isLoading)
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    StatsRow(
-                      totalDevices: deviceProvider.stats?.totalDevices ?? deviceProvider.totalDevicesCount,
-                      activeDevices: deviceProvider.stats?.activeDevices ?? 0,
-                      pendingDevices: deviceProvider.stats?.pendingDevices ?? 0,
-                      onlineDevices: deviceProvider.stats?.onlineDevices ?? 0,
-                      onStatTap: (filter) {
-                        switch (filter) {
-                          case 'active':
-                            deviceProvider.setStatusFilter(StatusFilter.active);
-                            break;
-                          case 'pending':
-                            deviceProvider.setStatusFilter(StatusFilter.pending);
-                            break;
-                          case 'online':
-                            deviceProvider.setConnectionFilter(ConnectionFilter.online);
-                            break;
-                        }
-                      },
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: () => deviceProvider.refreshDevices(),
+            child: CustomScrollView(
+              slivers: [
+                if (!deviceProvider.isLoading)
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        StatsRow(
+                          totalDevices: deviceProvider.stats?.totalDevices ?? deviceProvider.totalDevicesCount,
+                          activeDevices: deviceProvider.stats?.activeDevices ?? 0,
+                          pendingDevices: deviceProvider.stats?.pendingDevices ?? 0,
+                          onlineDevices: deviceProvider.stats?.onlineDevices ?? 0,
+                          onStatTap: (filter) {
+                            switch (filter) {
+                              case 'active':
+                                deviceProvider.setStatusFilter(StatusFilter.active);
+                                break;
+                              case 'pending':
+                                deviceProvider.setStatusFilter(StatusFilter.pending);
+                                break;
+                              case 'online':
+                                deviceProvider.setConnectionFilter(ConnectionFilter.online);
+                                break;
+                            }
+                          },
+                        ),
+                        // Payload stats cards removed - using Firebase instead
+                      ],
                     ),
-                    // Payload stats cards removed - using Firebase instead
-                  ],
-                ),
-              ),
+                  ),
 
-            SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _supportsZoom
-                        ? ClipRect(
-                            child: Transform.scale(
-                              scale: _filterScale,
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                height: 32 * _filterScale,
-                                margin: EdgeInsets.symmetric(vertical: 6 * _filterScale),
+                SliverToBoxAdapter(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _supportsZoom
+                            ? ClipRect(
+                                child: Transform.scale(
+                                  scale: _filterScale,
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    height: 32 * _filterScale,
+                                    margin: EdgeInsets.symmetric(vertical: 6 * _filterScale),
+                                    child: ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: EdgeInsets.symmetric(horizontal: 12 * _filterScale),
+                                      children: [
+                                        _buildFilterChips(deviceProvider, admin),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                height: 32,
+                                margin: const EdgeInsets.symmetric(vertical: 6),
                                 child: ListView(
                                   scrollDirection: Axis.horizontal,
-                                  padding: EdgeInsets.symmetric(horizontal: 12 * _filterScale),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
                                   children: [
                                     _buildFilterChips(deviceProvider, admin),
                                   ],
                                 ),
                               ),
-                            ),
-                          )
-                        : Container(
-                            height: 32,
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              children: [
-                                _buildFilterChips(deviceProvider, admin),
-                              ],
-                            ),
-                          ),
-                  ),
-                  if (_supportsZoom)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white.withOpacity(0.1)
-                              : Colors.black.withOpacity(0.1),
-                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_rounded, size: 18),
-                            onPressed: () {
-                              setState(() {
-                                if (_filterScale > 0.5) {
-                                  _filterScale -= 0.1;
-                                }
-                              });
-                            },
-                            tooltip: 'Zoom Out',
-                            padding: const EdgeInsets.all(4),
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                          ),
-                          Container(
-                            width: 40,
-                            alignment: Alignment.center,
-                            child: Text(
-                              '${(_filterScale * 100).toInt()}%',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+                      if (_supportsZoom)
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white.withOpacity(0.1)
+                                  : Colors.black.withOpacity(0.1),
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            onPressed: () {
-                              setState(() {
-                                if (_filterScale < 2.0) {
-                                  _filterScale += 0.1;
-                                }
-                              });
-                            },
-                            tooltip: 'Zoom In',
-                            padding: const EdgeInsets.all(4),
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_rounded, size: 18),
+                                onPressed: () {
+                                  setState(() {
+                                    if (_filterScale > 0.5) {
+                                      _filterScale -= 0.1;
+                                    }
+                                  });
+                                },
+                                tooltip: 'Zoom Out',
+                                padding: const EdgeInsets.all(4),
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              ),
+                              Container(
+                                width: 40,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${(_filterScale * 100).toInt()}%',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add_rounded, size: 18),
+                                onPressed: () {
+                                  setState(() {
+                                    if (_filterScale < 2.0) {
+                                      _filterScale += 0.1;
+                                    }
+                                  });
+                                },
+                                tooltip: 'Zoom In',
+                                padding: const EdgeInsets.all(4),
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                    ],
+                  ),
+                ),
+
+                if (deviceProvider.totalDevices > 0)
+                  SliverToBoxAdapter(
+                    child: _buildPerPageSection(context, deviceProvider, _supportsZoom ? _filterScale : 1.0),
+                  ),
+
+                if (deviceProvider.devices.isNotEmpty && !deviceProvider.isLoading)
+                  SliverToBoxAdapter(
+                    child: _buildDeviceCountInfo(deviceProvider, _supportsZoom ? _filterScale : 1.0),
+                  ),
+
+
+                if (deviceProvider.totalDevicesCount > 0)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(9.6, 0, 9.6, 12),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search devices...',
+                          prefixIcon: const Icon(Icons.search_rounded, size: 16),
+                          suffixIcon: deviceProvider.searchQuery.isNotEmpty
+                              ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, size: 16),
+                            onPressed: () {
+                              _searchController.clear();
+                              deviceProvider.clearSearch();
+                            },
+                          )
+                              : null,
+                        ),
+                        onChanged: (value) => deviceProvider.setSearchQuery(value),
                       ),
                     ),
-                ],
-              ),
-            ),
+                  ),
 
-            if (deviceProvider.totalDevices > 0)
-              SliverToBoxAdapter(
-                child: _buildPerPageSection(context, deviceProvider, _supportsZoom ? _filterScale : 1.0),
-              ),
-
-            if (deviceProvider.devices.isNotEmpty && !deviceProvider.isLoading)
-              SliverToBoxAdapter(
-                child: _buildDeviceCountInfo(deviceProvider, _supportsZoom ? _filterScale : 1.0),
-              ),
-
-
-            if (deviceProvider.totalDevicesCount > 0)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(9.6, 0, 9.6, 12),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search devices...',
-                      prefixIcon: const Icon(Icons.search_rounded, size: 16),
-                      suffixIcon: deviceProvider.searchQuery.isNotEmpty
-                          ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 16),
-                        onPressed: () {
+                if (deviceProvider.isLoading)
+                  const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+                else if (deviceProvider.errorMessage != null && deviceProvider.devices.isEmpty)
+                  SliverFillRemaining(
+                    child: EmptyState(
+                      icon: Icons.error_outline_rounded,
+                      title: 'Error',
+                      subtitle: deviceProvider.errorMessage,
+                      actionText: 'Retry',
+                      onAction: () => deviceProvider.fetchDevices(),
+                    ),
+                  )
+                else if (deviceProvider.devices.isEmpty)
+                    SliverFillRemaining(
+                      child: EmptyState(
+                        icon: deviceProvider.searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.devices_other_rounded,
+                        title: deviceProvider.searchQuery.isNotEmpty ? 'No Results' : 'No Devices',
+                        subtitle: deviceProvider.searchQuery.isNotEmpty ? 'Try different search or filters' : 'Devices will appear here',
+                        actionText: deviceProvider.searchQuery.isNotEmpty ? 'Clear' : 'Refresh',
+                        onAction: deviceProvider.searchQuery.isNotEmpty
+                            ? () {
                           _searchController.clear();
                           deviceProvider.clearSearch();
-                        },
-                      )
-                          : null,
-                    ),
-                    onChanged: (value) => deviceProvider.setSearchQuery(value),
-                  ),
-                ),
-              ),
+                        }
+                            : () => deviceProvider.refreshDevices(),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        12,
+                        0,
+                        12,
+                        deviceProvider.totalDevicesCount > deviceProvider.pageSize
+                            ? MediaQuery.of(context).padding.bottom + 80
+                            : 12,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final device = deviceProvider.devices[index];
+                            final isPinging = _devicePingingStatus[device.deviceId] ?? false;
+                            final pingResult = _devicePingResults[device.deviceId];
+                            final isNoting = _deviceNotingStatus[device.deviceId] ?? false;
+                            final noteResult = _deviceNoteResults[device.deviceId];
 
-            if (deviceProvider.isLoading)
-              const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
-            else if (deviceProvider.errorMessage != null && deviceProvider.devices.isEmpty)
-              SliverFillRemaining(
-                child: EmptyState(
-                  icon: Icons.error_outline_rounded,
-                  title: 'Error',
-                  subtitle: deviceProvider.errorMessage,
-                  actionText: 'Retry',
-                  onAction: () => deviceProvider.fetchDevices(),
-                ),
-              )
-            else if (deviceProvider.devices.isEmpty)
-                SliverFillRemaining(
-                  child: EmptyState(
-                    icon: deviceProvider.searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.devices_other_rounded,
-                    title: deviceProvider.searchQuery.isNotEmpty ? 'No Results' : 'No Devices',
-                    subtitle: deviceProvider.searchQuery.isNotEmpty ? 'Try different search or filters' : 'Devices will appear here',
-                    actionText: deviceProvider.searchQuery.isNotEmpty ? 'Clear' : 'Refresh',
-                    onAction: deviceProvider.searchQuery.isNotEmpty
-                        ? () {
-                      _searchController.clear();
-                      deviceProvider.clearSearch();
-                    }
-                        : () => deviceProvider.refreshDevices(),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                        final device = deviceProvider.devices[index];
-                        final isPinging = _devicePingingStatus[device.deviceId] ?? false;
-                        final pingResult = _devicePingResults[device.deviceId];
-                        final isNoting = _deviceNotingStatus[device.deviceId] ?? false;
-                        final noteResult = _deviceNoteResults[device.deviceId];
-
-                        return Column(
-                          children: [
-                            DeviceCard(
-                              device: device,
-                              isNew: deviceProvider.newDeviceIds.contains(device.deviceId),
-                              onTap: () {
-                                if (device.isActive) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => DeviceDetailScreen(device: device),
-                                    ),
-                                  ).then((_) {
-                                    // Auto refresh when returning from device detail screen
-                                    final deviceProvider = context.read<DeviceProvider>();
-                                    deviceProvider.fetchDevices();
-                                  });
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => PendingDeviceScreen(device: device),
-                                    ),
-                                  );
-                                }
-                              },
-                              onPing: device.isActive ? () => _handlePingDevice(device.deviceId) : null,
-                              isPinging: isPinging,
-                              onNote: device.isActive ? () => _handleNoteDevice(device.deviceId) : null,
-                              isNoting: isNoting,
-                            ),
-                            if (pingResult != null)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: pingResult == 'success'
-                                        ? const Color(0xFF10B981).withOpacity(0.15)
-                                        : const Color(0xFFEF4444).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: pingResult == 'success' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        pingResult == 'success' ? Icons.check_circle_rounded : Icons.error_rounded,
-                                        color: pingResult == 'success' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                        size: 18,
+                            return Column(
+                              children: [
+                                DeviceCard(
+                                  device: device,
+                                  isNew: deviceProvider.newDeviceIds.contains(device.deviceId),
+                                  onTap: () {
+                                    if (device.isActive) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => DeviceDetailScreen(device: device),
+                                        ),
+                                      ).then((_) {
+                                        // Auto refresh when returning from device detail screen
+                                        final deviceProvider = context.read<DeviceProvider>();
+                                        deviceProvider.fetchDevices();
+                                      });
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => PendingDeviceScreen(device: device),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  onPing: device.isActive ? () => _handlePingDevice(device.deviceId) : null,
+                                  isPinging: isPinging,
+                                  onNote: device.isActive ? () => _handleNoteDevice(device.deviceId) : null,
+                                  isNoting: isNoting,
+                                ),
+                                if (pingResult != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: pingResult == 'success'
+                                            ? const Color(0xFF10B981).withOpacity(0.15)
+                                            : const Color(0xFFEF4444).withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: pingResult == 'success' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                          width: 1.5,
+                                        ),
                                       ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          pingResult == 'success' ? 'Ping successful!' : 'Failed to ping device',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            pingResult == 'success' ? Icons.check_circle_rounded : Icons.error_rounded,
                                             color: pingResult == 'success' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                            size: 18,
                                           ),
-                                        ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              pingResult == 'success' ? 'Ping successful!' : 'Failed to ping device',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: pingResult == 'success' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            if (noteResult != null)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: noteResult == 'success'
-                                        ? const Color(0xFF8B5CF6).withOpacity(0.15)
-                                        : const Color(0xFFEF4444).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: noteResult == 'success' ? const Color(0xFF8B5CF6) : const Color(0xFFEF4444),
-                                      width: 1.5,
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        noteResult == 'success' ? Icons.check_circle_rounded : Icons.error_rounded,
-                                        color: noteResult == 'success' ? const Color(0xFF8B5CF6) : const Color(0xFFEF4444),
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          noteResult == 'success' ? 'Note sent successfully!' : 'Failed to send note',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: noteResult == 'success' ? const Color(0xFF8B5CF6) : const Color(0xFFEF4444),
-                                          ),
+                                if (noteResult != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: noteResult == 'success'
+                                            ? const Color(0xFF8B5CF6).withOpacity(0.15)
+                                            : const Color(0xFFEF4444).withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: noteResult == 'success' ? const Color(0xFF8B5CF6) : const Color(0xFFEF4444),
+                                          width: 1.5,
                                         ),
                                       ),
-                                    ],
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            noteResult == 'success' ? Icons.check_circle_rounded : Icons.error_rounded,
+                                            color: noteResult == 'success' ? const Color(0xFF8B5CF6) : const Color(0xFFEF4444),
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              noteResult == 'success' ? 'Note sent successfully!' : 'Failed to send note',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: noteResult == 'success' ? const Color(0xFF8B5CF6) : const Color(0xFFEF4444),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                      childCount: deviceProvider.devices.length,
+                              ],
+                            );
+                          },
+                          childCount: deviceProvider.devices.length,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-          ],
-        ),
+              ],
+            ),
+          ),
+          if (deviceProvider.totalDevicesCount > deviceProvider.pageSize && !deviceProvider.isLoading)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              right: 16,
+              child: _FloatingPagination(deviceProvider: deviceProvider),
+            ),
+        ],
       ),
-      floatingActionButton: deviceProvider.totalDevicesCount > deviceProvider.pageSize
-          ? _FloatingPagination(deviceProvider: deviceProvider)
-          : null,
     );
   }
 
@@ -1731,71 +1745,85 @@ class _FloatingPagination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 80, right: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+    return Material(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(30),
+      shadowColor: Colors.black.withOpacity(0.3),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF6366F1).withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.5),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            onPressed: deviceProvider.hasPreviousPage && !deviceProvider.isLoading
-                ? () => deviceProvider.goToPreviousPage()
-                : null,
-            icon: Icon(
-              Icons.chevron_left_rounded,
-              color: deviceProvider.hasPreviousPage && !deviceProvider.isLoading
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.3),
-              size: 28,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${deviceProvider.currentPage} / ${deviceProvider.totalPages}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                letterSpacing: 0.5,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(30),
+                ),
+                onTap: deviceProvider.hasPreviousPage && !deviceProvider.isLoading
+                    ? () => deviceProvider.goToPreviousPage()
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(
+                    Icons.chevron_left_rounded,
+                    color: deviceProvider.hasPreviousPage && !deviceProvider.isLoading
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.3),
+                    size: 20,
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            onPressed: deviceProvider.hasNextPage && !deviceProvider.isLoading
-                ? () => deviceProvider.goToNextPage()
-                : null,
-            icon: Icon(
-                Icons.chevron_right_rounded,
-                color: deviceProvider.hasNextPage && !deviceProvider.isLoading
-                    ? Colors.white
-                    : Colors.white.withOpacity(0.3),
-                size: 28),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                '${deviceProvider.currentPage}/${deviceProvider.totalPages}',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: const BorderRadius.horizontal(
+                  right: Radius.circular(30),
+                ),
+                onTap: deviceProvider.hasNextPage && !deviceProvider.isLoading
+                    ? () => deviceProvider.goToNextPage()
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: deviceProvider.hasNextPage && !deviceProvider.isLoading
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.3),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
